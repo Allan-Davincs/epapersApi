@@ -1,0 +1,27 @@
+[Unit]
+Description=EPapers API
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=epapers
+Group=epapers
+WorkingDirectory=/srv/epapers/current
+EnvironmentFile=/etc/epapers/api.env
+Environment=NODE_ENV=production
+Environment=PORT=3001
+Environment=HOSTNAME=127.0.0.1
+ExecStart=/usr/bin/node .next/standalone/server.js
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=30
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/srv/epapers/current/.next
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target
