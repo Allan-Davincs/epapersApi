@@ -9,9 +9,10 @@ export function endpoint(path, methods, imports) {
   else code+=`export const ${method}=route('${path}', ${schema}, async (data, request, identity) => ${action}, ${JSON.stringify(auth)}, ${cache});\n`;
  }
  // Static action declarations may not use every wrapper argument.
- for(const arg of ['data','request','identity']) if(!methods.some(m=>new RegExp('\\b'+arg+'\\b').test(m[2]))) code=code.replaceAll(arg+',', '_'+arg+',').replaceAll(arg+')', '_'+arg+')');
- if(!methods.some(m=>m[1].includes('schemas.')))code=code.replace('catalogSchemas as schemas, empty','empty');
- if(!methods.some(m=>m[1]==='empty'))code=code.replace('catalogSchemas as schemas, empty','catalogSchemas as schemas');
+ code=code.replace(/async \(data, request, identity\) => ([^\n]+)/g,(_,body)=>{let args=['data','request','identity'].map(arg=>new RegExp('\\b'+arg+'\\b').test(body)?arg:'_'+arg);return 'async ('+args.join(', ')+') => '+body;});
+ code=code.replace(/import \{ ([^}]+) \} from ([^;]+);/g,(full,names,source)=>{
+  const rest=code.replace(full,'');const used=names.split(',').map(n=>n.trim()).filter(n=>new RegExp('\\b'+n.split(' as ').at(-1)+'\\b').test(rest));return used.length?'import { '+used.join(', ')+' } from '+source+';':'';
+ });
  writeFileSync(dir+'/route.ts',code);
 }
 const imports="import { catalogSchemas as schemas, empty } from '@/modules/catalog/schemas';\nimport * as service from '@/modules/catalog/service';";

@@ -2,7 +2,7 @@ export const runtime = 'nodejs';
 import { route, preflight } from '@/modules/auth/routes-helpers';
 import { moderationSchemas as schemas } from '@/modules/moderation/schemas';
 import * as service from '@/modules/moderation/service';
-import { empty, catalogSchemas } from '@/modules/catalog/schemas';
+import { empty } from '@/modules/catalog/schemas';
 export const OPTIONS = preflight;
 import { NextRequest } from 'next/server';
 import { z } from 'zod';

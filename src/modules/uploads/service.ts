@@ -11,7 +11,7 @@ import { authorize } from '../auth/service';
 import { activeModule,publicPaper,page,cursorId } from '../catalog/service';
 import { uploadSchemas } from './schemas';
 function uploader(user:User){authorize(user,{roles:['contributor','lecturer'],requireVerifiedEmail:true});}
-export function validPdfEdges(first:Buffer,last:Buffer){return /^[\x09\x0a\x0d\x20]{0,8}%PDF-(1\.[0-7]|2\.0)(?:\s|$)/.test(first.toString('latin1')) && /%%EOF[\x09\x0a\x0d\x20]*$/.test(last.toString('latin1'));}
+export function validPdfEdges(first:Buffer,last:Buffer){return /^[\t\n\r ]{0,8}%PDF-(1\.[0-7]|2\.0)(?:\s|$)/.test(first.toString('latin1')) && /%%EOF[\t\n\r ]*$/.test(last.toString('latin1'));}
 async function currentUploader(tx:TransactionClient,id:string){await tx.$queryRaw`SELECT id FROM users WHERE id=${id}::UUID FOR UPDATE`;const u=await tx.user.findUnique({where:{id}});if(!u)fail(401,'UNAUTHORIZED','Authentication required');uploader(u);const lockdown=await tx.appSetting.findUnique({where:{key:'lockdown'}});if(lockdown?.value===true)fail(403,'LOCKDOWN','Uploads are temporarily disabled');return u;}
 export async function presign(user:User,input:z.infer<typeof uploadSchemas.presign>){
  uploader(user);

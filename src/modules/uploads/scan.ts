@@ -13,13 +13,13 @@ export class StructuralPdfScanner implements ScanProvider {
    tail=Buffer.concat([tail,Buffer.from(chunk)]).subarray(-1024);
    const text=carry+Buffer.from(chunk).toString('latin1');
    const normalized=text.replace(/#([0-9a-f]{2})/gi,(_,hex:string)=>String.fromCharCode(parseInt(hex,16)));
-   unsafe ||= /\/(?:JavaScript|JS|Launch|EmbeddedFiles|EmbeddedFile)(?=[\s/<>\[\](){}%]|$)/.test(normalized);
+   unsafe ||= /\/(?:JavaScript|JS|Launch|EmbeddedFiles|EmbeddedFile)(?=[\s/<>[\](){}%]|$)/.test(normalized);
    // Count completed matches only, preserving a boundary window for split tokens.
    const cutoff=Math.max(0,text.length-128);
-   for(const match of text.matchAll(/\/Type\s*\/Page(?=[\s/<>\[\](){}%])/g))if(match.index<cutoff)pages++;
+   for(const match of text.matchAll(/\/Type\s*\/Page(?=[\s/<>[\](){}%])/g))if(match.index<cutoff)pages++;
    carry=text.slice(cutoff);
   }
-  pages+=[...carry.matchAll(/\/Type\s*\/Page(?=[\s/<>\[\](){}%])/g)].length;
+  pages+=[...carry.matchAll(/\/Type\s*\/Page(?=[\s/<>[\](){}%])/g)].length;
   const clean=size===expectedSize && validPdfEdges(first,tail) && !unsafe;
   return {clean,sha256Hex:hash.digest('hex'),pageCount:pages || null,...(!clean?{reason:'PDF failed structural safety validation'}:{})};
  }
