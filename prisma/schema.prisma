@@ -64,6 +64,8 @@ model Department {
   programs      Program[]
   users         User[]
   @@map("departments")
+  relatedDeletedById User? @relation("DepartmentDeletedById", fields: [deletedById], references: [id], onDelete: Restrict)
+
 }
 
 model Program {
@@ -84,6 +86,10 @@ model Program {
   modules        Module[]
   @@index([departmentId, isActive])
   @@map("programs")
+  relatedDeletedById User? @relation("ProgramDeletedById", fields: [deletedById], references: [id], onDelete: Restrict)
+
+  moduleRequestProgramId ModuleRequest[] @relation("ModuleRequestProgramId")
+
 }
 
 model Module {
@@ -108,6 +114,8 @@ model Module {
   @@index([codeNormalized])
   @@index([nameNormalized])
   @@map("modules")
+  relatedDeletedById User? @relation("ModuleDeletedById", fields: [deletedById], references: [id], onDelete: Restrict)
+
 }
 
 model User {
@@ -139,6 +147,58 @@ model User {
   @@index([role, status])
   @@index([homeDepartmentId])
   @@map("users")
+  relatedDeletedById User? @relation("UserDeletedById", fields: [deletedById], references: [id], onDelete: Restrict)
+
+  userDeletedById User[] @relation("UserDeletedById")
+
+  departmentDeletedById Department[] @relation("DepartmentDeletedById")
+
+  programDeletedById Program[] @relation("ProgramDeletedById")
+
+  moduleDeletedById Module[] @relation("ModuleDeletedById")
+
+  paperDeletedById Paper[] @relation("PaperDeletedById")
+
+  paperReviewedByUserId Paper[] @relation("PaperReviewedByUserId")
+
+  storedFileOwnerUserId StoredFile[] @relation("StoredFileOwnerUserId")
+
+  usernameRegistryUserId UsernameRegistry[] @relation("UsernameRegistryUserId")
+
+  authChallengeUserId AuthChallenge[] @relation("AuthChallengeUserId")
+
+  appSettingUpdatedByUserId AppSetting[] @relation("AppSettingUpdatedByUserId")
+
+  auditLogActorUserId AuditLog[] @relation("AuditLogActorUserId")
+
+  xpLedgerUserId XpLedger[] @relation("XpLedgerUserId")
+
+  notificationUserId Notification[] @relation("NotificationUserId")
+
+  announcementCreatedByUserId Announcement[] @relation("AnnouncementCreatedByUserId")
+
+  announcementDeletedById Announcement[] @relation("AnnouncementDeletedById")
+
+  moduleRequestRequestedByUserId ModuleRequest[] @relation("ModuleRequestRequestedByUserId")
+
+  moduleRequestReviewedByUserId ModuleRequest[] @relation("ModuleRequestReviewedByUserId")
+
+  moduleRequestDeletedById ModuleRequest[] @relation("ModuleRequestDeletedById")
+
+  paperReviewReviewerUserId PaperReview[] @relation("PaperReviewReviewerUserId")
+
+  flaggedReportReportedByUserId FlaggedReport[] @relation("FlaggedReportReportedByUserId")
+
+  flaggedReportResolvedByUserId FlaggedReport[] @relation("FlaggedReportResolvedByUserId")
+
+  takedownRequestRequesterUserId TakedownRequest[] @relation("TakedownRequestRequesterUserId")
+
+  takedownRequestReviewedByUserId TakedownRequest[] @relation("TakedownRequestReviewedByUserId")
+
+  userAchievementUserId UserAchievement[] @relation("UserAchievementUserId")
+
+  contactMessageSenderUserId ContactMessage[] @relation("ContactMessageSenderUserId")
+
 }
 
 model UserSession {
@@ -155,6 +215,8 @@ model UserSession {
   user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   @@index([userId, expiresAt])
   @@map("user_sessions")
+  @@index([familyId])
+
 }
 
 model StoredFile {
@@ -173,6 +235,8 @@ model StoredFile {
   markingPapers    Paper[]    @relation("MarkingFile")
   @@index([sha256Hex])
   @@map("stored_files")
+  relatedOwnerUserId User? @relation("StoredFileOwnerUserId", fields: [ownerUserId], references: [id], onDelete: Restrict)
+
 }
 
 model Paper {
@@ -206,6 +270,22 @@ model Paper {
   @@index([status, createdAt])
   @@index([uploadedByUserId, createdAt])
   @@map("papers")
+  relatedDeletedById User? @relation("PaperDeletedById", fields: [deletedById], references: [id], onDelete: Restrict)
+
+  relatedReviewedByUserId User? @relation("PaperReviewedByUserId", fields: [reviewedByUserId], references: [id], onDelete: Restrict)
+
+  xpLedgerPaperId XpLedger[] @relation("XpLedgerPaperId")
+
+  paperDownloadEventPaperId PaperDownloadEvent[] @relation("PaperDownloadEventPaperId")
+
+  paperViewEventPaperId PaperViewEvent[] @relation("PaperViewEventPaperId")
+
+  paperReviewPaperId PaperReview[] @relation("PaperReviewPaperId")
+
+  flaggedReportPaperId FlaggedReport[] @relation("FlaggedReportPaperId")
+
+  takedownRequestPaperId TakedownRequest[] @relation("TakedownRequestPaperId")
+
 }
 
 model Job {
@@ -228,6 +308,10 @@ model UsernameRegistry {
   claimedAt DateTime @default(now()) @map("claimed_at") @db.Timestamptz
   retiredAt DateTime? @map("retired_at") @db.Timestamptz
   @@map("username_registry")
+  @@index([userId])
+
+  relatedUserId User @relation("UsernameRegistryUserId", fields: [userId], references: [id], onDelete: Restrict)
+
 }
 
 model AuthChallenge {
@@ -240,6 +324,11 @@ model AuthChallenge {
   consumedAt DateTime? @map("consumed_at") @db.Timestamptz
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
   @@map("auth_challenges")
+  @@index([userId, kind, createdAt(sort: Desc)])
+  @@index([tokenHash])
+
+  relatedUserId User @relation("AuthChallengeUserId", fields: [userId], references: [id], onDelete: Restrict)
+
 }
 
 model AppSetting {
@@ -248,6 +337,8 @@ model AppSetting {
   @@map("app_settings")
   updatedByUserId String? @map("updated_by_user_id") @db.Uuid
   updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz
+  relatedUpdatedByUserId User? @relation("AppSettingUpdatedByUserId", fields: [updatedByUserId], references: [id], onDelete: Restrict)
+
 }
 
 model AuditLog {
@@ -261,6 +352,11 @@ model AuditLog {
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
   @@map("audit_logs")
   targetDescription String @default("") @map("target_description")
+  @@index([actorUserId])
+  @@index([targetType, targetId, createdAt(sort: Desc)])
+
+  relatedActorUserId User? @relation("AuditLogActorUserId", fields: [actorUserId], references: [id], onDelete: Restrict)
+
 }
 
 model XpLedger {
@@ -275,6 +371,13 @@ model XpLedger {
   status String @default("applied")
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
   @@map("xp_ledger")
+  @@index([userId, createdAt(sort: Desc)])
+  @@index([paperId])
+
+  relatedUserId User @relation("XpLedgerUserId", fields: [userId], references: [id], onDelete: Restrict)
+
+  relatedPaperId Paper? @relation("XpLedgerPaperId", fields: [paperId], references: [id], onDelete: Restrict)
+
 }
 
 model PaperDownloadEvent {
@@ -283,6 +386,10 @@ model PaperDownloadEvent {
   ipHash String? @map("ip_hash")
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
   @@map("paper_download_events")
+  @@index([paperId, createdAt(sort: Desc)])
+
+  relatedPaperId Paper @relation("PaperDownloadEventPaperId", fields: [paperId], references: [id], onDelete: Restrict)
+
 }
 
 model PaperViewEvent {
@@ -291,6 +398,10 @@ model PaperViewEvent {
   ipHash String? @map("ip_hash")
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
   @@map("paper_view_events")
+  @@index([paperId, createdAt(sort: Desc)])
+
+  relatedPaperId Paper @relation("PaperViewEventPaperId", fields: [paperId], references: [id], onDelete: Restrict)
+
 }
 
 model Notification {
@@ -303,6 +414,10 @@ model Notification {
   readAt DateTime? @map("read_at") @db.Timestamptz
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
   @@map("notifications")
+  @@index([userId, createdAt(sort: Desc)])
+
+  relatedUserId User @relation("NotificationUserId", fields: [userId], references: [id], onDelete: Restrict)
+
 }
 
 model Announcement {
@@ -318,6 +433,10 @@ model Announcement {
   deletedAt DateTime? @map("deleted_at") @db.Timestamptz
   deletedById String? @map("deleted_by_user_id") @db.Uuid
   @@map("announcements")
+  relatedCreatedByUserId User? @relation("AnnouncementCreatedByUserId", fields: [createdByUserId], references: [id], onDelete: Restrict)
+
+  relatedDeletedById User? @relation("AnnouncementDeletedById", fields: [deletedById], references: [id], onDelete: Restrict)
+
 }
 
 model ModuleRequest {
@@ -337,6 +456,19 @@ model ModuleRequest {
   deletedAt DateTime? @map("deleted_at") @db.Timestamptz
   deletedById String? @map("deleted_by_user_id") @db.Uuid
   @@map("module_requests")
+  @@index([status, createdAt(sort: Desc)])
+  @@index([requestedByUserId])
+  @@index([programId, moduleCode])
+  @@index([reviewedByUserId])
+
+  relatedRequestedByUserId User? @relation("ModuleRequestRequestedByUserId", fields: [requestedByUserId], references: [id], onDelete: Restrict)
+
+  relatedProgramId Program @relation("ModuleRequestProgramId", fields: [programId], references: [id], onDelete: Restrict)
+
+  relatedReviewedByUserId User? @relation("ModuleRequestReviewedByUserId", fields: [reviewedByUserId], references: [id], onDelete: Restrict)
+
+  relatedDeletedById User? @relation("ModuleRequestDeletedById", fields: [deletedById], references: [id], onDelete: Restrict)
+
 }
 
 model PaperReview {
@@ -349,6 +481,13 @@ model PaperReview {
   correctedModuleCode String? @map("corrected_module_code")
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
   @@map("paper_reviews")
+  @@index([paperId, createdAt(sort: Desc)])
+  @@index([reviewerUserId])
+
+  relatedPaperId Paper @relation("PaperReviewPaperId", fields: [paperId], references: [id], onDelete: Restrict)
+
+  relatedReviewerUserId User @relation("PaperReviewReviewerUserId", fields: [reviewerUserId], references: [id], onDelete: Restrict)
+
 }
 
 model FlaggedReport {
@@ -363,6 +502,17 @@ model FlaggedReport {
   resolutionNote String? @map("resolution_note")
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
   @@map("flagged_reports")
+  @@index([status, createdAt(sort: Desc)])
+  @@index([paperId])
+  @@index([reportedByUserId])
+  @@index([resolvedByUserId])
+
+  relatedPaperId Paper @relation("FlaggedReportPaperId", fields: [paperId], references: [id], onDelete: Restrict)
+
+  relatedReportedByUserId User? @relation("FlaggedReportReportedByUserId", fields: [reportedByUserId], references: [id], onDelete: Restrict)
+
+  relatedResolvedByUserId User? @relation("FlaggedReportResolvedByUserId", fields: [resolvedByUserId], references: [id], onDelete: Restrict)
+
 }
 
 model TakedownRequest {
@@ -380,6 +530,17 @@ model TakedownRequest {
   reviewNote String? @map("review_note")
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
   @@map("takedown_requests")
+  @@index([status, createdAt(sort: Desc)])
+  @@index([paperId])
+  @@index([requesterUserId])
+  @@index([reviewedByUserId])
+
+  relatedPaperId Paper @relation("TakedownRequestPaperId", fields: [paperId], references: [id], onDelete: Restrict)
+
+  relatedRequesterUserId User? @relation("TakedownRequestRequesterUserId", fields: [requesterUserId], references: [id], onDelete: Restrict)
+
+  relatedReviewedByUserId User? @relation("TakedownRequestReviewedByUserId", fields: [reviewedByUserId], references: [id], onDelete: Restrict)
+
 }
 
 model AchievementDefinition {
@@ -392,6 +553,8 @@ model AchievementDefinition {
   maxProgress Int @default(1) @map("max_progress")
   isActive Boolean @default(true) @map("is_active")
   @@map("achievement_definitions")
+  userAchievementAchievementId UserAchievement[] @relation("UserAchievementAchievementId")
+
 }
 
 model UserAchievement {
@@ -401,6 +564,12 @@ model UserAchievement {
   unlockedAt DateTime? @map("unlocked_at") @db.Timestamptz
   @@id([userId, achievementId])
   @@map("user_achievements")
+  @@index([achievementId])
+
+  relatedUserId User @relation("UserAchievementUserId", fields: [userId], references: [id], onDelete: Restrict)
+
+  relatedAchievementId AchievementDefinition @relation("UserAchievementAchievementId", fields: [achievementId], references: [id], onDelete: Restrict)
+
 }
 
 model ContactMessage {
@@ -413,6 +582,10 @@ model ContactMessage {
   status String @default("new")
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
   @@map("contact_messages")
+  @@index([senderUserId])
+
+  relatedSenderUserId User? @relation("ContactMessageSenderUserId", fields: [senderUserId], references: [id], onDelete: Restrict)
+
 }
 
 model RateLimitCounter {
@@ -420,6 +593,8 @@ model RateLimitCounter {
   hits Int @default(1) @db.Int4
   expiresAt DateTime @map("expires_at") @db.Timestamptz
   @@map("rate_limit_counters")
+  @@index([expiresAt])
+
 }
 
 model EmailDailyCounter {

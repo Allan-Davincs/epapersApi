@@ -9,7 +9,7 @@ export const tokenHash = (token: string) => createHmac('sha256', env.REFRESH_TOK
 export const ipHash = (ip: string) => createHmac('sha256', env.IP_HASH_SALT).update(ip).digest('hex');
 const common = new Set(['password123','password1234','1234567890','qwertyuiop','abcdefghij','letmein1234','iloveyou123','password123!']);
 export async function hashPassword(password: string) {
- if (common.has(password.toLowerCase())) fail(422,'WEAK_PASSWORD','Choose a less common password');
+ if (password.length<10 || password.length>128 || common.has(password.toLowerCase()) || /^(password|qwerty|letmein|admin|welcome|iloveyou)[0-9!@#$]*$/i.test(password) || /^[0-9]+$/.test(password)) fail(422,'WEAK_PASSWORD','Choose a less common password');
  return argon2.hash(password, {type:argon2.argon2id,memoryCost:65536,timeCost:3,parallelism:1});
 }
 export const verifyPassword = (hash: string, password: string) => argon2.verify(hash,password);
