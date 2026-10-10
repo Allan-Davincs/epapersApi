@@ -28,7 +28,7 @@ Keep access JWT in memory. Send `Authorization: Bearer <accessToken>` for authen
 | `markNotificationRead` | `PATCH /notifications/{id}` with `{ read: true }`, owner-only. |
 | `markAllNotificationsRead` | `POST /notifications/read-all` with `{}`; no userId parameter. |
 | `getFlags` | `GET /admin/flags`, admin queue. |
-| `submitFlag` | `POST /flags` with paperId/reason/details. Optional authenticated identity; omit mock status/reportedAt/username/id. |
+| `submitFlag` | `POST /flags` with paperId/reason/details and a valid bearer JWT; omit mock status/reportedAt/username/id. |
 | `resolveFlag` | `PATCH /admin/flags/{id}` with status resolved/dismissed and required note. |
 | `getTakedowns` | `GET /admin/takedowns`, admin queue. |
 | `submitTakedown` | `POST /takedowns` with paperId/requesterFullName/requesterEmail/affiliation/reason/evidence; omit generated fields. |

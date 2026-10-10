@@ -1,4 +1,4 @@
-import { describe, it, expect, afterAll, vi } from 'vitest';
+import { describe, it, expect, afterAll } from 'vitest';
 import { PrismaClient } from '@prisma/client';
 import { verifyReauthentication } from '../src/lib/jwt';
 import { NextRequest } from 'next/server';
