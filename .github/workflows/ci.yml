@@ -9,7 +9,7 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: 22, cache: npm }
       - run: npm ci
-      - run: docker run -d --name crdb -p 26257:26257 cockroachdb/cockroach:v25.1.0 start-single-node --insecure
+      - run: docker run -d --name crdb -p 26257:26257 cockroachdb/cockroach:v26.2.7 start-single-node --insecure
       - run: for i in $(seq 1 30); do docker exec crdb ./cockroach sql --insecure -e 'CREATE DATABASE IF NOT EXISTS epapers_test' && break; sleep 2; done
       - run: npm run db:migrate
         env:

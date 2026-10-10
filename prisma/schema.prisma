@@ -320,7 +320,7 @@ model AuthChallenge {
   kind String
   tokenHash String @map("token_hash")
   expiresAt DateTime @map("expires_at") @db.Timestamptz
-  attempts Int @default(0)
+  attempts BigInt @default(0) @db.Int8
   consumedAt DateTime? @map("consumed_at") @db.Timestamptz
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
   @@map("auth_challenges")
@@ -362,7 +362,7 @@ model AuditLog {
 model XpLedger {
   id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   userId String @map("user_id") @db.Uuid
-  amount Int @db.Int4
+  amount BigInt @db.Int8
   eventType String @map("event_type")
   reason String @default("")
   title String @default("")
@@ -590,7 +590,7 @@ model ContactMessage {
 
 model RateLimitCounter {
   key String @id
-  hits Int @default(1) @db.Int4
+  hits BigInt @default(1) @db.Int8
   expiresAt DateTime @map("expires_at") @db.Timestamptz
   @@map("rate_limit_counters")
   @@index([expiresAt])
@@ -599,6 +599,6 @@ model RateLimitCounter {
 
 model EmailDailyCounter {
   day DateTime @id @db.Date
-  sent Int @default(0) @db.Int4
+  sent BigInt @default(0) @db.Int8
   @@map("email_daily_counters")
 }

@@ -1,7 +1,3 @@
-ALTER TABLE xp_ledger ALTER COLUMN amount TYPE INT4;
-ALTER TABLE auth_challenges ALTER COLUMN attempts TYPE INT4;
-ALTER TABLE rate_limit_counters ALTER COLUMN hits TYPE INT4;
-ALTER TABLE email_daily_counters ALTER COLUMN sent TYPE INT4;
 ALTER TABLE users ADD CONSTRAINT users_deleted_by_fkey FOREIGN KEY(deleted_by_user_id) REFERENCES users(id);
 CREATE INDEX users_deleted_by_idx ON users(deleted_by_user_id);
 ALTER TABLE departments ADD CONSTRAINT departments_deleted_by_fkey FOREIGN KEY(deleted_by_user_id) REFERENCES users(id);
@@ -12,7 +8,5 @@ ALTER TABLE modules ADD CONSTRAINT modules_deleted_by_fkey FOREIGN KEY(deleted_b
 CREATE INDEX modules_deleted_by_idx ON modules(deleted_by_user_id);
 ALTER TABLE papers ADD CONSTRAINT papers_deleted_by_fkey FOREIGN KEY(deleted_by_user_id) REFERENCES users(id);
 CREATE INDEX papers_deleted_by_idx ON papers(deleted_by_user_id);
-ALTER TABLE announcements ADD CONSTRAINT announcements_deleted_by_fkey FOREIGN KEY(deleted_by_user_id) REFERENCES users(id);
 CREATE INDEX announcements_deleted_by_idx ON announcements(deleted_by_user_id);
-ALTER TABLE module_requests ADD CONSTRAINT module_requests_deleted_by_fkey FOREIGN KEY(deleted_by_user_id) REFERENCES users(id);
 CREATE INDEX module_requests_deleted_by_idx ON module_requests(deleted_by_user_id);

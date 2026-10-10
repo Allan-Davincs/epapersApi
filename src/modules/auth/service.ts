@@ -139,3 +139,10 @@ export async function sessions(userId:string) { return (await db.userSession.fin
 export async function revokeSession(userId:string,id:string) { await withTransactionRetry(async tx=>{ await lockUser(tx,userId); const s=await tx.userSession.findFirst({where:{id,userId}}); if(!s) fail(404,'NOT_FOUND','Session not found'); await tx.userSession.updateMany({where:{userId,familyId:s.familyId},data:{revokedAt:new Date()}}); }); return {message:'Session revoked'}; }
 
 export async function logoutAll(userId:string) { await withTransactionRetry(async tx=>{ await lockUser(tx,userId); await tx.userSession.updateMany({where:{userId},data:{revokedAt:new Date()}}); await audit(tx,userId,'LOGOUT_ALL'); }); return {message:'All sessions revoked'}; }
+
+export function authorize(user:User,options:{roles?:string[];requireVerifiedEmail?:boolean;scope?:{departmentId:string}}) {
+ active(user);
+ if(options.roles && !options.roles.includes(user.role.toLowerCase())) fail(403,'FORBIDDEN','Access denied');
+ if(options.requireVerifiedEmail && !user.emailVerifiedAt) fail(403,'EMAIL_UNVERIFIED','Verify your email first');
+ if(options.scope && user.role!=='ADMIN' && (user.role!=='LECTURER' || !user.lecturerVerifiedAt || user.homeDepartmentId!==options.scope.departmentId)) fail(403,'FORBIDDEN','Department access denied');
+}

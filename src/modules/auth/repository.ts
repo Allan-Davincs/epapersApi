@@ -1,6 +1,6 @@
 import 'server-only';
 import type { TransactionClient } from '../../lib/db';
-export interface Challenge { id:string; user_id:string; token_hash:string; attempts:number; expires_at:Date; consumed_at:Date|null; created_at:Date; }
+export interface Challenge { id:string; user_id:string; token_hash:string; attempts:bigint; expires_at:Date; consumed_at:Date|null; created_at:Date; }
 export async function challenge(tx:TransactionClient,userId:string,kind:string) {
  const rows=await tx.$queryRaw<Challenge[]>`SELECT * FROM auth_challenges WHERE user_id=${userId}::UUID AND kind=${kind} ORDER BY created_at DESC LIMIT 1 FOR UPDATE`;
  return rows[0];

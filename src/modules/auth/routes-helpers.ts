@@ -7,14 +7,13 @@ import { securityHeaders } from '../../lib/http';
 import { logger } from '../../lib/logger';
 import { rateLimit } from '../../lib/rate-limit';
 import { ipHash } from '../../lib/crypto';
-import { authenticate } from './service';
+import { authenticate,authorize } from './service';
 type Identity=Awaited<ReturnType<typeof authenticate>>;
-export function withAuth(options:{roles?:string[];requireVerifiedEmail?:boolean}={}) {
+export function withAuth(options:{roles?:string[];requireVerifiedEmail?:boolean;scope?:{departmentId:string}}={}) {
  return async (req:NextRequest):Promise<Identity> => {
   const bearer=req.headers.get('authorization'); if(!bearer?.startsWith('Bearer ')) fail(401,'UNAUTHORIZED','Authentication required');
   const identity=await authenticate(bearer.slice(7));
-  if(options.roles && !options.roles.includes(identity.user.role.toLowerCase())) fail(403,'FORBIDDEN','Access denied');
-  if(options.requireVerifiedEmail && !identity.user.emailVerifiedAt) fail(403,'EMAIL_UNVERIFIED','Verify your email first');
+  authorize(identity.user,options);
   return identity;
  };
 }
