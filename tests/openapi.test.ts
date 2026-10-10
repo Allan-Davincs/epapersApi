@@ -1,7 +1,7 @@
 import { describe,it,expect } from 'vitest';
 import { readFileSync,readdirSync } from 'node:fs';
 import { join,relative } from 'node:path';
-type Operation={security?:Array<Record<string,unknown>>,parameters?:Array<{name:string,required?:boolean}>,responses?:Record<string,unknown>};
+type Operation={security?:Array<Record<string,unknown>>,parameters?:Array<{name:string,required?:boolean}>,responses?:Record<string,{content?:Record<string,unknown>}>};
 const document=JSON.parse(readFileSync('docs/openapi.yaml','utf8')) as {paths:Record<string,Record<string,Operation>>,components:{schemas:Record<string,unknown>}};
 const normalize=(path:string)=>path.replace(/\{[^}]+\}/g,'{}');
 function files(root:string):string[]{return readdirSync(root,{withFileTypes:true}).flatMap(e=>e.isDirectory()?files(join(root,e.name)):e.name==='route.ts'?[join(root,e.name)]:[]);}
@@ -18,6 +18,7 @@ describe('generated handover contract',()=>{
   }
  });
  it('resolves all local schema references',()=>{
+  for(const item of Object.values(document.paths))for(const operation of Object.values(item))expect(operation.responses?.['200']?.content?.['application/json']).toBeDefined();
   const text=JSON.stringify(document);for(const [,name] of text.matchAll(/"\$ref":"#\/components\/schemas\/([^"/]+)"/g))expect(document.components.schemas[name],name).toBeDefined();
  });
  it('documents admin bearer access and sensitive reauth headers',()=>{

@@ -17,7 +17,8 @@ for (const [path, [method, schema, auth]] of Object.entries(mapping))
 paths['/users/me'] = { patch: { security: [{ bearerAuth: [] }], requestBody: { required: true, content: { 'application/json': { schema: { $ref: '#/components/schemas/auth_profile' } } } }, responses: { '200': success('profile'), '409': { description: 'Username unavailable or cooldown' } } } };
 paths['/users/me/sessions'] = { get: { security: [{ bearerAuth: [] }], responses: { '200': success('sessionList') } } };
 paths['/users/me/sessions/{id}'] = { delete: { security: [{ bearerAuth: [] }], parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }], responses: { '200': success('message'), '404': { description: 'Session not found' } } } };
-paths['/health'] = { get: { responses: { '200': { description: 'Database healthy' }, '503': { description: 'Database unavailable' } } } };
+definitions.health=z.toJSONSchema(z.strictObject({status:z.literal('ok'),database:z.literal('ok'),timestamp:z.string().datetime()}));
+paths['/health'] = { get: { security:[],responses: { '200': success('health'), '503': { description: 'Database unavailable',content:{'application/json':{schema:{$ref:'#/components/schemas/error'}}} } } } };
 const aliases: Record<string,string> = {
     '/auth/verify-otp':'/auth/verify-email',
     '/auth/resend-otp':'/auth/verification/resend',
