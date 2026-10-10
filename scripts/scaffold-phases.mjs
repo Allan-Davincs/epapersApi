@@ -13,6 +13,7 @@ export function endpoint(path, methods, imports) {
  code=code.replace(/import \{ ([^}]+) \} from ([^;]+);/g,(full,names,source)=>{
   const rest=code.replace(full,'');const used=names.split(',').map(n=>n.trim()).filter(n=>new RegExp('\\b'+n.split(' as ').at(-1)+'\\b').test(rest));return used.length?'import { '+used.join(', ')+' } from '+source+';':'';
  });
+ code=code.replace(/import \{ ([^}]+) \} from ([^;]+);/g,(full,names,source)=>{const rest=code.replace(full,'');const used=names.split(',').map(n=>n.trim()).filter(n=>new RegExp('\\b'+n.split(' as ').at(-1)+'\\b').test(rest));return used.length?'import { '+used.join(', ')+' } from '+source+';':'';});
  writeFileSync(dir+'/route.ts',code);
 }
 const imports="import { catalogSchemas as schemas, empty } from '@/modules/catalog/schemas';\nimport * as service from '@/modules/catalog/service';";

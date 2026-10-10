@@ -25,5 +25,5 @@ export const db = raw.$extends({ query: { $allModels: { async $allOperations({ m
 export function withDeleted() { return raw; }
 export type TransactionClient = Omit<typeof db, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>;
 export async function withTransactionRetry<T>(operation: (tx: TransactionClient) => Promise<T>): Promise<T> {
-    return withRetry(() => db.$transaction(operation, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }));
+    return withRetry(() => db.$transaction(operation, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable, timeout: 20000 }));
 }

@@ -32,7 +32,7 @@ export async function publishFile(fileId:string){
 }
 export async function deleteFile(fileId:string){const f=await db.storedFile.findUnique({where:{id:fileId}});if(!f || f.scanStatus!=='REJECTED')return;invalidateDownloads(f.id);await storage.delete(f.bucketName,f.objectKey);}
 export async function cleanAbandoned(){
- const rows=await db.storedFile.findMany({where:{completedAt:null,createdAt:{lt:new Date(Date.now()-86400000)}},take:25});
+ const rows=await db.storedFile.findMany({where:{completedAt:null,examPaper:null,markingPapers:{none:{}},createdAt:{lt:new Date(Date.now()-86400000)}},take:25});
  for(const f of rows){await storage.delete(f.bucketName,f.objectKey);await withTransactionRetry(tx=>tx.storedFile.deleteMany({where:{id:f.id,completedAt:null,examPaper:null,markingPapers:{none:{}}}}));}
 }
 export async function rollupEvents(){
