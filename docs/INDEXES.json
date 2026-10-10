@@ -1,0 +1,204 @@
+{
+  "fixture": {
+    "modules": 200,
+    "papers": 3000
+  },
+  "plans": {
+    "modules": [
+      {
+        "info": "distribution: local"
+      },
+      {
+        "info": ""
+      },
+      {
+        "info": "• render"
+      },
+      {
+        "info": "│"
+      },
+      {
+        "info": "└── • scan"
+      },
+      {
+        "info": "      estimated row count: 1 (100% of the table; stats collected 2 minutes ago; using stats forecast for 13 seconds in the future)"
+      },
+      {
+        "info": "      table: modules@modules_program_semester_active_idx (partial index)"
+      },
+      {
+        "info": "      spans: [/'00d109ee-52d4-4f6d-8e26-0a1e1c2f7a66'/1 - /'00d109ee-52d4-4f6d-8e26-0a1e1c2f7a66'/1]"
+      }
+    ],
+    "recent": [
+      {
+        "info": "distribution: local"
+      },
+      {
+        "info": ""
+      },
+      {
+        "info": "• render"
+      },
+      {
+        "info": "│"
+      },
+      {
+        "info": "└── • scan"
+      },
+      {
+        "info": "      estimated row count: 1 (100% of the table; stats collected 2 minutes ago; using stats forecast for 30 seconds in the future)"
+      },
+      {
+        "info": "      table: papers@papers_public_recent_idx (partial index)"
+      },
+      {
+        "info": "      spans: LIMITED SCAN"
+      },
+      {
+        "info": "      limit: 25"
+      }
+    ],
+    "popular": [
+      {
+        "info": "distribution: local"
+      },
+      {
+        "info": ""
+      },
+      {
+        "info": "• render"
+      },
+      {
+        "info": "│"
+      },
+      {
+        "info": "└── • scan"
+      },
+      {
+        "info": "      estimated row count: 1 (100% of the table; stats collected 2 minutes ago; using stats forecast for 30 seconds in the future)"
+      },
+      {
+        "info": "      table: papers@papers_public_popular_idx (partial index)"
+      },
+      {
+        "info": "      spans: LIMITED SCAN"
+      },
+      {
+        "info": "      limit: 25"
+      }
+    ],
+    "search": [
+      {
+        "info": "distribution: local"
+      },
+      {
+        "info": ""
+      },
+      {
+        "info": "• filter"
+      },
+      {
+        "info": "│ estimated row count: 1"
+      },
+      {
+        "info": "│ filter: (name_normalized >= 'plan module 1') AND (name_normalized < e'plan module 1\\U0000FFFF')"
+      },
+      {
+        "info": "│"
+      },
+      {
+        "info": "└── • index join"
+      },
+      {
+        "info": "    │ estimated row count: 1"
+      },
+      {
+        "info": "    │ table: modules@modules_pkey"
+      },
+      {
+        "info": "    │"
+      },
+      {
+        "info": "    └── • scan"
+      },
+      {
+        "info": "          estimated row count: 1 (100% of the table; stats collected 2 minutes ago; using stats forecast for 13 seconds in the future)"
+      },
+      {
+        "info": "          table: modules@modules_code_live_key (partial index)"
+      },
+      {
+        "info": "          spans: FULL SCAN"
+      },
+      {
+        "info": ""
+      },
+      {
+        "info": "index recommendations: 1"
+      },
+      {
+        "info": "1. type: index creation"
+      },
+      {
+        "info": "   SQL command: CREATE INDEX ON epapers_phase12_test_1791639023826.public.modules (deleted_at, name_normalized);"
+      }
+    ],
+    "auth": [
+      {
+        "info": "distribution: local"
+      },
+      {
+        "info": ""
+      },
+      {
+        "info": "• filter"
+      },
+      {
+        "info": "│ estimated row count: 1"
+      },
+      {
+        "info": "│ filter: deleted_at IS NULL"
+      },
+      {
+        "info": "│"
+      },
+      {
+        "info": "└── • index join"
+      },
+      {
+        "info": "    │ estimated row count: 1"
+      },
+      {
+        "info": "    │ table: users@users_pkey"
+      },
+      {
+        "info": "    │"
+      },
+      {
+        "info": "    └── • scan"
+      },
+      {
+        "info": "          estimated row count: 1 (100% of the table; stats collected 3 minutes ago; using stats forecast for 1 minute in the future)"
+      },
+      {
+        "info": "          table: users@users_email_normalized_key"
+      },
+      {
+        "info": "          spans: [/'index_fixture@example.com' - /'index_fixture@example.com']"
+      },
+      {
+        "info": ""
+      },
+      {
+        "info": "index recommendations: 1"
+      },
+      {
+        "info": "1. type: index creation"
+      },
+      {
+        "info": "   SQL command: CREATE INDEX ON epapers_phase12_test_1791639023826.public.users (email_normalized, deleted_at);"
+      }
+    ]
+  }
+}
