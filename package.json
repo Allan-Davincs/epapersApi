@@ -17,7 +17,8 @@
     "openapi": "node --env-file=.env --conditions=react-server --import tsx scripts/generate-openapi.ts",
     "check:secrets": "node scripts/check-secrets.mjs",
     "test:load": "node --env-file=.env scripts/test-operation.mjs load-test",
-    "test:restore": "node --env-file=.env scripts/test-operation.mjs restore-drill"
+    "test:restore": "node --env-file=.env scripts/test-operation.mjs restore-drill",
+    "test:indexes": "node --env-file=.env scripts/test-operation.mjs explain-indexes"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.850.0",
