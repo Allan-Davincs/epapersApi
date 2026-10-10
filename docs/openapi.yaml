@@ -22,7 +22,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/reauth"
+                "$ref": "#/components/schemas/auth_reauth"
               }
             }
           }
@@ -119,7 +119,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/register"
+                "$ref": "#/components/schemas/auth_register"
               }
             }
           }
@@ -216,7 +216,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/login"
+                "$ref": "#/components/schemas/auth_login"
               }
             }
           }
@@ -313,7 +313,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/adminLogin"
+                "$ref": "#/components/schemas/auth_adminLogin"
               }
             }
           }
@@ -410,7 +410,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/verifyOtp"
+                "$ref": "#/components/schemas/auth_verifyOtp"
               }
             }
           }
@@ -507,7 +507,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/resend"
+                "$ref": "#/components/schemas/auth_resend"
               }
             }
           }
@@ -604,7 +604,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/forgot"
+                "$ref": "#/components/schemas/auth_forgot"
               }
             }
           }
@@ -701,7 +701,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/reset"
+                "$ref": "#/components/schemas/auth_reset"
               }
             }
           }
@@ -802,7 +802,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/empty"
+                "$ref": "#/components/schemas/auth_empty"
               }
             }
           }
@@ -899,7 +899,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/empty"
+                "$ref": "#/components/schemas/auth_empty"
               }
             }
           }
@@ -1000,7 +1000,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/empty"
+                "$ref": "#/components/schemas/auth_empty"
               }
             }
           }
@@ -1270,7 +1270,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/profile"
+                "$ref": "#/components/schemas/auth_profile"
               }
             }
           }
@@ -1429,7 +1429,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/verifyOtp"
+                "$ref": "#/components/schemas/auth_verifyOtp"
               }
             }
           }
@@ -1526,7 +1526,7 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/resend"
+                "$ref": "#/components/schemas/auth_resend"
               }
             }
           }
@@ -6749,7 +6749,7 @@
       }
     },
     "schemas": {
-      "register": {
+      "auth_register": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "type": "object",
         "properties": {
@@ -6798,7 +6798,7 @@
         ],
         "additionalProperties": false
       },
-      "login": {
+      "auth_login": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "type": "object",
         "properties": {
@@ -6819,20 +6819,27 @@
         ],
         "additionalProperties": false
       },
-      "reauth": {
+      "auth_reauth": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "type": "object",
         "properties": {
-          "reauthToken": {
-            "type": "string"
+          "password": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "totp": {
+            "type": "string",
+            "pattern": "^\\d{6}$"
           }
         },
         "required": [
-          "reauthToken"
+          "password",
+          "totp"
         ],
         "additionalProperties": false
       },
-      "adminLogin": {
+      "auth_adminLogin": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "type": "object",
         "properties": {
@@ -6858,7 +6865,7 @@
         ],
         "additionalProperties": false
       },
-      "verifyOtp": {
+      "auth_verifyOtp": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "type": "object",
         "properties": {
@@ -6879,7 +6886,7 @@
         ],
         "additionalProperties": false
       },
-      "resend": {
+      "auth_resend": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "type": "object",
         "properties": {
@@ -6895,7 +6902,7 @@
         ],
         "additionalProperties": false
       },
-      "forgot": {
+      "auth_forgot": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "type": "object",
         "properties": {
@@ -6917,7 +6924,7 @@
         ],
         "additionalProperties": false
       },
-      "reset": {
+      "auth_reset": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "type": "object",
         "properties": {
@@ -6935,6 +6942,89 @@
         "required": [
           "token",
           "password"
+        ],
+        "additionalProperties": false
+      },
+      "auth_profile": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 30,
+            "pattern": "^[a-zA-Z0-9_]+$"
+          },
+          "fullName": {
+            "type": "string",
+            "minLength": 2,
+            "maxLength": 160
+          },
+          "bio": {
+            "type": "string",
+            "maxLength": 1000
+          },
+          "avatarId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^[a-z0-9_-]{1,32}$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "additionalProperties": false
+      },
+      "auth_availability": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "username": {
+            "type": "string",
+            "minLength": 3,
+            "maxLength": 30,
+            "pattern": "^[a-zA-Z0-9_]+$"
+          }
+        },
+        "required": [
+          "username"
+        ],
+        "additionalProperties": false
+      },
+      "auth_empty": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "auth_session": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          }
+        },
+        "required": [
+          "id"
+        ],
+        "additionalProperties": false
+      },
+      "reauth": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "reauthToken": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "reauthToken"
         ],
         "additionalProperties": false
       },
@@ -6998,40 +7088,6 @@
           "emailVerified",
           "levelTitle",
           "joinedAt"
-        ],
-        "additionalProperties": false
-      },
-      "availability": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "type": "object",
-        "properties": {
-          "available": {
-            "type": "boolean"
-          }
-        },
-        "required": [
-          "available"
-        ],
-        "additionalProperties": false
-      },
-      "empty": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "type": "object",
-        "properties": {},
-        "additionalProperties": false
-      },
-      "session": {
-        "$schema": "https://json-schema.org/draft/2020-12/schema",
-        "type": "object",
-        "properties": {
-          "id": {
-            "type": "string",
-            "format": "uuid",
-            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
-          }
-        },
-        "required": [
-          "id"
         ],
         "additionalProperties": false
       },
@@ -7151,6 +7207,19 @@
         },
         "required": [
           "message"
+        ],
+        "additionalProperties": false
+      },
+      "availability": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "available": {
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "available"
         ],
         "additionalProperties": false
       },
@@ -10516,6 +10585,12 @@
         "required": [
           "read"
         ],
+        "additionalProperties": false
+      },
+      "empty": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {},
         "additionalProperties": false
       }
     }

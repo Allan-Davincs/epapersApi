@@ -65,6 +65,7 @@ Migration 0005 adds completion/publication/page-count fields, job lease tokens a
 | tsc --noEmit | Pass |
 | Unit/handler tests | 25 passed; database suites intentionally skipped in the unit command |
 | Real CockroachDB suites | 17 passed: 8 auth/foundation and 9 Phase 3–5 tests |
+| Focused final moderation regressions | 2 passed: edits before scanning award no XP; edits preserve rejection reasons |
 | Migration deploy | Pass on test and application databases |
 | Standalone Next.js build | Pass |
 | OpenAPI generation | Pass, new request and response schemas included |
