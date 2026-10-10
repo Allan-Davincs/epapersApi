@@ -36,10 +36,10 @@
         "info": "│ regions: gcp-europe-west3"
       },
       {
-        "info": "│ execution time: 85µs"
+        "info": "│ execution time: 123µs"
       },
       {
-        "info": "│ sql cpu time: 85µs"
+        "info": "│ sql cpu time: 123µs"
       },
       {
         "info": "│ actual row count: 100"
@@ -87,10 +87,10 @@
         "info": "│   └── • render"
       },
       {
-        "info": "│       │ execution time: 31µs"
+        "info": "│       │ execution time: 14µs"
       },
       {
-        "info": "│       │ sql cpu time: 31µs"
+        "info": "│       │ sql cpu time: 14µs"
       },
       {
         "info": "│       │ actual row count: 200"
@@ -117,13 +117,13 @@
         "info": "│             KV rows decoded: 200"
       },
       {
-        "info": "│             sql cpu time: 63µs"
+        "info": "│             sql cpu time: 64µs"
       },
       {
         "info": "│             actual row count: 200"
       },
       {
-        "info": "│             estimated row count: 200 (100% of the table; stats collected 16 minutes ago)"
+        "info": "│             estimated row count: 200 (100% of the table; stats collected 24 minutes ago)"
       },
       {
         "info": "│             table: modules@modules_program_semester_active_idx (partial index)"
@@ -162,7 +162,7 @@
         "info": "        │ KV rows decoded: 1"
       },
       {
-        "info": "        │ sql cpu time: 46µs"
+        "info": "        │ sql cpu time: 43µs"
       },
       {
         "info": "        │ actual row count: 1"
@@ -195,13 +195,13 @@
         "info": "              KV rows decoded: 1"
       },
       {
-        "info": "              sql cpu time: 15µs"
+        "info": "              sql cpu time: 11µs"
       },
       {
         "info": "              actual row count: 1"
       },
       {
-        "info": "              estimated row count: 1 (0.50% of the table; stats collected 16 minutes ago)"
+        "info": "              estimated row count: 1 (0.50% of the table; stats collected 24 minutes ago)"
       },
       {
         "info": "              table: modules@modules_code_live_key (partial index)"
@@ -227,7 +227,7 @@
         "info": "└── • scan"
       },
       {
-        "info": "      estimated row count: 100 (50% of the table; stats collected 16 minutes ago)"
+        "info": "      estimated row count: 100 (50% of the table; stats collected 24 minutes ago)"
       },
       {
         "info": "      table: modules@modules_program_semester_active_idx (partial index)"
@@ -286,19 +286,19 @@
         "info": "      regions: gcp-europe-west3"
       },
       {
-        "info": "      KV time: 2ms"
+        "info": "      KV time: 1ms"
       },
       {
         "info": "      KV rows decoded: 25"
       },
       {
-        "info": "      sql cpu time: 29µs"
+        "info": "      sql cpu time: 25µs"
       },
       {
         "info": "      actual row count: 25"
       },
       {
-        "info": "      estimated row count: 25 (0.83% of the table; stats collected 16 minutes ago)"
+        "info": "      estimated row count: 25 (0.83% of the table; stats collected 2 minutes ago)"
       },
       {
         "info": "      table: papers@papers_public_recent_idx (partial index)"
@@ -315,7 +315,7 @@
         "info": "planning time: 2ms"
       },
       {
-        "info": "execution time: 1ms"
+        "info": "execution time: 2ms"
       },
       {
         "info": "distribution: local"
@@ -336,10 +336,10 @@
         "info": "• render"
       },
       {
-        "info": "│ execution time: 14µs"
+        "info": "│ execution time: 16µs"
       },
       {
-        "info": "│ sql cpu time: 14µs"
+        "info": "│ sql cpu time: 16µs"
       },
       {
         "info": "│ actual row count: 25"
@@ -366,13 +366,13 @@
         "info": "      KV rows decoded: 25"
       },
       {
-        "info": "      sql cpu time: 25µs"
+        "info": "      sql cpu time: 27µs"
       },
       {
         "info": "      actual row count: 25"
       },
       {
-        "info": "      estimated row count: 25 (0.83% of the table; stats collected 16 minutes ago)"
+        "info": "      estimated row count: 25 (0.83% of the table; stats collected 2 minutes ago)"
       },
       {
         "info": "      table: papers@papers_public_popular_idx (partial index)"
@@ -452,7 +452,7 @@
         "info": "    │ KV rows decoded: 1"
       },
       {
-        "info": "    │ sql cpu time: 56µs"
+        "info": "    │ sql cpu time: 61µs"
       },
       {
         "info": "    │ actual row count: 1"
@@ -485,13 +485,13 @@
         "info": "          KV rows decoded: 1"
       },
       {
-        "info": "          sql cpu time: 19µs"
+        "info": "          sql cpu time: 20µs"
       },
       {
         "info": "          actual row count: 1"
       },
       {
-        "info": "          estimated row count: 1 (0.50% of the table; stats collected 16 minutes ago)"
+        "info": "          estimated row count: 1 (0.50% of the table; stats collected 24 minutes ago)"
       },
       {
         "info": "          table: modules@modules_name_normalized_idx"
@@ -568,7 +568,7 @@
         "info": "    │ KV rows decoded: 1"
       },
       {
-        "info": "    │ sql cpu time: 66µs"
+        "info": "    │ sql cpu time: 56µs"
       },
       {
         "info": "    │ actual row count: 1"
@@ -601,13 +601,13 @@
         "info": "          KV rows decoded: 1"
       },
       {
-        "info": "          sql cpu time: 25µs"
+        "info": "          sql cpu time: 21µs"
       },
       {
         "info": "          actual row count: 1"
       },
       {
-        "info": "          estimated row count: 1 (100% of the table; stats collected 22 minutes ago)"
+        "info": "          estimated row count: 1 (12% of the table; stats collected 23 minutes ago)"
       },
       {
         "info": "          table: users@users_email_normalized_key"
