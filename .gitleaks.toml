@@ -1,0 +1,7 @@
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Public RFC 6238 TOTP test vector only"
+regexTarget = "match"
+regexes = ['GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ']

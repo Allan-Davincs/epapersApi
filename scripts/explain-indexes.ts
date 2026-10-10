@@ -22,7 +22,8 @@ try {
  const fixture={modules:await db.module.count({where:{codeNormalized:{startsWith:'plan'}}}),papers:await db.paper.count({where:{uploadedByUserId:owner.id}})};
  if(fixture.modules!==200 || fixture.papers!==3000) throw new Error('Unexpected fixture size');
  const plans={
- modules:await db.$queryRaw`EXPLAIN ANALYZE SELECT id FROM modules WHERE program_id=${program.id}::UUID AND semester=1 AND is_active AND deleted_at IS NULL`,
+ modulesRuntime:await db.$queryRaw`EXPLAIN ANALYZE SELECT id FROM modules WHERE program_id=(SELECT program_id FROM modules WHERE code_normalized='plan1' AND deleted_at IS NULL LIMIT 1) AND semester=1 AND is_active AND deleted_at IS NULL`,
+ modules:await db.$queryRaw`EXPLAIN SELECT id FROM modules WHERE program_id=${program.id}::UUID AND semester=1 AND is_active AND deleted_at IS NULL`,
  recent:await db.$queryRaw`EXPLAIN ANALYZE SELECT id FROM papers WHERE status='APPROVED' AND deleted_at IS NULL ORDER BY created_at DESC LIMIT 25`,
  popular:await db.$queryRaw`EXPLAIN ANALYZE SELECT id FROM papers WHERE status='APPROVED' AND deleted_at IS NULL ORDER BY downloads_count DESC LIMIT 25`,
  search:await db.$queryRaw`EXPLAIN ANALYZE SELECT id FROM modules WHERE name_normalized >= 'plan module 199' AND name_normalized < 'plan module 199\uffff' AND deleted_at IS NULL`,
@@ -33,4 +34,4 @@ try {
 } finally {await db.$disconnect();}
 
 }
-main().catch(error=>{console.error('Index verification failed:',error.code || error.name);process.exitCode=1;});
+main().catch(error=>{console.error('Index verification failed:',error.code || error.name,error.meta?.code,error.meta?.message);process.exitCode=1;});

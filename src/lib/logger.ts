@@ -9,7 +9,7 @@ export function scrub(value: unknown): unknown {
   return value;
 }
 export function createLogger(destination?: pino.DestinationStream) {
-  const options: pino.LoggerOptions = { level: env.LOG_LEVEL, hooks: { logMethod(args, method) { if (typeof args[0] === 'object') args[0] = scrub(args[0]) as object; method.apply(this, args); } } };
+  const options: pino.LoggerOptions = { level: env.LOG_LEVEL, base: undefined, hooks: { logMethod(args, method) { if (typeof args[0] === 'object') args[0] = scrub(args[0]) as object; method.apply(this, args); } } };
   return destination ? pino(options, destination) : pino(options);
 }
 export const logger = createLogger();

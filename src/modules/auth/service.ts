@@ -108,6 +108,7 @@ export async function authenticate(token:string) {
 }
 export async function logout(token:string) { await withTransactionRetry(async tx=> { const session=await tx.userSession.findUnique({where:{refreshTokenHash:tokenHash(token)}}); if(session) { await lockUser(tx,session.userId); await tx.userSession.updateMany({where:{familyId:session.familyId},data:{revokedAt:new Date()}}); } }); return {message:'Logged out'}; }
 export async function resetPassword(token:string,password:string) {
+ await rateLimit('reset-token:'+tokenHash(token),5,1800);
  const passwordHash=await hashPassword(password);
  const ok=await withTransactionRetry(async tx=> {
   const rows=await tx.$queryRaw<Array<{user_id:string}>>`SELECT user_id FROM auth_challenges WHERE token_hash=${tokenHash(token)} AND kind='reset' LIMIT 1`;
