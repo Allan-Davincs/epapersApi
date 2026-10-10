@@ -1,8 +1,8 @@
 import 'server-only';
 import { encrypt,decrypt } from '../../lib/encryption';
 import { randomUUID } from 'node:crypto';
-import type { Prisma, User } from '@prisma/client';
-import { db, withTransactionRetry } from '../../lib/db';
+import type { User } from '@prisma/client';
+import { db, withTransactionRetry, type TransactionClient } from '../../lib/db';
 import { fail } from '../../lib/errors';
 import { hashPassword, verifyPassword, opaqueToken, tokenHash, otp, verifyTotp } from '../../lib/crypto';
 import { signAccess, verifyAccess } from '../../lib/jwt';
@@ -12,10 +12,10 @@ import { otpEmail, resetEmail } from '../../lib/email/templates';
 import { privateUser } from './dto';
 import { audit, challenge } from './repository';
 const generic={message:'If eligible, an email will be sent. Delivery may be delayed.'};
-async function lockUser(tx:Prisma.TransactionClient,id:string) { await tx.$queryRaw`SELECT id FROM users WHERE id=${id}::UUID FOR UPDATE`; }
+async function lockUser(tx:TransactionClient,id:string) { await tx.$queryRaw`SELECT id FROM users WHERE id=${id}::UUID FOR UPDATE`; }
 function active(user:User|null): asserts user is User { if(!user || user.deletedAt || user.status!=='ACTIVE') fail(401,'UNAUTHORIZED','Authentication required'); }
-async function enqueue(tx:Prisma.TransactionClient,message:ReturnType<typeof otpEmail>,priority=false) { await tx.job.create({data:{type:priority?'email_otp':'email',payload:{encrypted:encrypt(message,'email')}}}); }
-async function newChallenge(tx:Prisma.TransactionClient,user:User,kind:'otp'|'reset') {
+async function enqueue(tx:TransactionClient,message:ReturnType<typeof otpEmail>,priority=false) { await tx.job.create({data:{type:priority?'email_otp':'email',payload:{encrypted:encrypt(message,'email')}}}); }
+async function newChallenge(tx:TransactionClient,user:User,kind:'otp'|'reset') {
  const token=kind==='otp'?otp():opaqueToken();
  await tx.$executeRaw`UPDATE auth_challenges SET consumed_at=now() WHERE user_id=${user.id}::UUID AND kind=${kind} AND consumed_at IS NULL`;
  await tx.$executeRaw`INSERT INTO auth_challenges(user_id,kind,token_hash,expires_at) VALUES (${user.id}::UUID,${kind},${tokenHash(token)},${new Date(Date.now()+(kind==='otp'?600000:1800000))})`;
@@ -60,7 +60,7 @@ export async function verifyOtp(email:string,code:string) {
  });
  if(!result) fail(422,'INVALID_CODE','Code is invalid or expired'); return {message:'Email verified'};
 }
-async function issueSession(tx:Prisma.TransactionClient,user:User,familyId:string=randomUUID()) {
+async function issueSession(tx:TransactionClient,user:User,familyId:string=randomUUID()) {
  const refreshToken=opaqueToken(); const session=await tx.userSession.create({data:{userId:user.id,familyId,refreshTokenHash:tokenHash(refreshToken),expiresAt:new Date(Date.now()+(user.role==='ADMIN'?3600000:30*86400000))}});
  return {session,refreshToken};
 }

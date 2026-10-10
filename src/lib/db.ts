@@ -18,6 +18,7 @@ export const db = raw.$extends({ query: { $allModels: { async $allOperations({ m
 } } } });
 /** Restricted escape hatch for admin restore/purge only. */
 export function withDeleted() { return raw; }
-export async function withTransactionRetry<T>(operation: (tx: Prisma.TransactionClient) => Promise<T>): Promise<T> {
+export type TransactionClient = Omit<typeof db, '$connect' | '$disconnect' | '$on' | '$transaction' | '$use' | '$extends'>;
+export async function withTransactionRetry<T>(operation: (tx: TransactionClient) => Promise<T>): Promise<T> {
   return withRetry(() => db.$transaction(operation, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }));
 }
