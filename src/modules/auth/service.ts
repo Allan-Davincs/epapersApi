@@ -1,4 +1,5 @@
 import 'server-only';
+import { encrypt,decrypt } from '../../lib/encryption';
 import { randomUUID } from 'node:crypto';
 import type { Prisma, User } from '@prisma/client';
 import { db, withTransactionRetry } from '../../lib/db';
@@ -13,7 +14,7 @@ import { audit, challenge } from './repository';
 const generic={message:'If eligible, an email will be sent. Delivery may be delayed.'};
 async function lockUser(tx:Prisma.TransactionClient,id:string) { await tx.$queryRaw`SELECT id FROM users WHERE id=${id}::UUID FOR UPDATE`; }
 function active(user:User|null): asserts user is User { if(!user || user.deletedAt || user.status!=='ACTIVE') fail(401,'UNAUTHORIZED','Authentication required'); }
-async function enqueue(tx:Prisma.TransactionClient,message:ReturnType<typeof otpEmail>,priority=false) { await tx.job.create({data:{type:priority?'email_otp':'email',payload:{...message}}}); }
+async function enqueue(tx:Prisma.TransactionClient,message:ReturnType<typeof otpEmail>,priority=false) { await tx.job.create({data:{type:priority?'email_otp':'email',payload:{encrypted:encrypt(message,'email')}}}); }
 async function newChallenge(tx:Prisma.TransactionClient,user:User,kind:'otp'|'reset') {
  const token=kind==='otp'?otp():opaqueToken();
  await tx.$executeRaw`UPDATE auth_challenges SET consumed_at=now() WHERE user_id=${user.id}::UUID AND kind=${kind} AND consumed_at IS NULL`;
@@ -67,12 +68,13 @@ export async function login(usernameOrEmail:string,password:string,totp?:string)
  const email=usernameOrEmail.toLowerCase();
  await rateLimit('login-email:'+tokenHash(email),10,900);
  const user=await db.user.findFirst({where:{OR:[{emailNormalized:email},{usernameNormalized:email}]}});
+ if(user) await rateLimit('login-account:'+user.id,10,900);
  // Burn the same Argon2 work for unknown accounts to reduce account enumeration.
  const ok=user ? await verifyPassword(user.passwordHash,password) : (await hashPassword(opaqueToken()),false);
  if(!ok) fail(401,'INVALID_CREDENTIALS','Invalid credentials'); active(user);
- if(user.role==='ADMIN') { if(!totp || !user.totpSecret || !verifyTotp(user.totpSecret,totp)) fail(401,'INVALID_CREDENTIALS','Invalid credentials'); }
+ if(user.role==='ADMIN') { if(!totp || !user.totpSecret || !verifyTotp(decrypt<string>(user.totpSecret,'totp'),totp)) fail(401,'INVALID_CREDENTIALS','Invalid credentials'); }
  else if(totp!==undefined) fail(403,'FORBIDDEN','Admin account required');
- const issued=await withTransactionRetry(async tx=> { await lockUser(tx,user.id); const current=await tx.user.findUnique({where:{id:user.id}}); active(current); return issueSession(tx,current); });
+ const issued=await withTransactionRetry(async tx=> { await lockUser(tx,user.id); const current=await tx.user.findUnique({where:{id:user.id}}); active(current); if(current.passwordHash!==user.passwordHash || current.role!==user.role || current.totpSecret!==user.totpSecret) fail(401,'INVALID_CREDENTIALS','Please log in again'); return issueSession(tx,current); });
  return {...issued,accessToken:await signAccess(user,issued.session.id),user:privateUser(user)};
 }
 export async function refresh(token:string) {

@@ -1,3 +1,4 @@
+import { decrypt } from '../src/lib/encryption';
 import { db,withTransactionRetry } from '../src/lib/db';
 import { logger } from '../src/lib/logger';
 import { emailProvider,EmailMessage } from '../src/lib/email/provider';
@@ -19,7 +20,7 @@ async function tick() {
   }
   // Prevent delivery of OTP/reset messages after their validity window.
   const expired=Date.now()-job.createdAt.getTime()>(job.type==='email_otp'?600000:1800000);
-  if(!expired) await emailProvider.send(job.payload as unknown as EmailMessage);
+  if(!expired) await emailProvider.send(decrypt<EmailMessage>((job.payload as {encrypted:string}).encrypted,'email'));
   await withTransactionRetry(tx=>tx.job.update({where:{id:job.id},data:{status:expired?'expired':'done',lastError:null}}));
  } catch {
   await withTransactionRetry(tx=>tx.job.update({where:{id:job.id},data:{status:job.attempts>=7?'failed':'pending',runAt:new Date(Date.now()+Math.min(3600000,1000*2**job.attempts)),lastError:'Email delivery failed'}}));

@@ -1,32 +1,22 @@
 # EPapers API
 
-TypeScript API for DIT, built with Next.js route handlers, Prisma, CockroachDB,
-and Cloudflare R2. The API base path is `/api/v1`; the separate Vite frontend
-remains unchanged.
+Strict TypeScript API for DIT using Next.js App Router, Prisma and CockroachDB. The separate frontend is unchanged. Base path: `/api/v1`.
 
-## Local setup
+## Setup
 
-1. Use Node.js 20 or newer and a CockroachDB cluster/database.
-2. Copy `.env.example` to `.env` and fill in credentials locally. Keep `.env`
-   out of version control.
-3. Install packages with `npm install`.
-4. Apply the checked-in migrations using `npm run db:migrate`.
-5. Start the API using `npm run dev`.
+1. Use Node.js 22 or newer. Copy `.env.example` to `.env` and configure credentials locally.
+2. For CockroachDB Cloud use TLS: `sslmode=require&sslaccept=strict` (Prisma connection options). Never disable certificate validation.
+3. Run `npm install`, `npm run db:generate`, `npm run db:migrate`, then `npm run db:seed`.
+4. Run `npm run dev`. Secure refresh cookies require HTTPS, including development.
+5. Run the worker separately: `node --env-file=.env --conditions=react-server --import tsx worker/index.ts`.
 
-`GET /api/v1/health` checks database connectivity. Do not expose database or
-storage credentials in logs or client responses. R2 buckets must remain private.
+## Verification
 
-## Database notes
+- `npm run lint`, `npm run typecheck`, `npm test`.
+- Set `TEST_DATABASE_URL` in `.env` to a disposable CockroachDB database whose name contains `test`, then run `npm run test:db`. This applies migrations, seeds curriculum, runs database auth tests, and prints index plans. It never runs against `DATABASE_URL`.
+- `npm run build` validates the standalone deployment build.
+- `npm run openapi` regenerates `docs/openapi.yaml` directly from request Zod schemas (JSON is valid YAML).
 
-The Prisma schema uses CockroachDB. `prisma/migrations` includes the initial
-schema and CockroachDB SQL constraints/indexes Prisma cannot represent. Apply
-and validate migrations against CockroachDB, not PostgreSQL. Curriculum seed
-rows are intentionally not included until the DIT department/program mappings
-marked for verification in `backend.md` are confirmed.
+The versioned curriculum seed includes only departments/programs, no modules, users, passwords, Masters or vocational certificates. Programme assignments flagged in `prisma/seed/curriculum-v1.json` require prospectus verification before production. Module CSV contract: `code,name,programCode,semester,levelYear,credits`; dry-run and commit endpoints are planned for Phase 6.
 
-## Configuration
-
-See `.env.example`. Environment values are validated at server startup. When
-`EMAIL_PROVIDER=smtp`, Google SMTP credentials are required; when using
-`resend`, `RESEND_API_KEY` is required. Production secrets must be independently
-generated and managed by the deployment environment.
+See [auth contract](docs/AUTH.md) and [phase verification](docs/PHASES.md). Production email/Turnstile delivery needs configured service credentials. `DATA_ENCRYPTION_KEY` encrypts email outbox and admin TOTP secrets; back it up securely and keep it separate from JWT and refresh secrets.
