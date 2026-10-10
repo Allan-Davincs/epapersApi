@@ -1,0 +1,7 @@
+import 'server-only';
+import { SignJWT, jwtVerify } from 'jose';
+import { randomUUID } from 'node:crypto';
+import { env } from './env';
+const key=new TextEncoder().encode(env.JWT_ACCESS_SECRET);
+export function signAccess(user: {id:string;role:string}, sid:string) { return new SignJWT({role:user.role.toLowerCase(),sid}).setProtectedHeader({alg:'HS256'}).setSubject(user.id).setIssuer('epapers-api').setAudience('epapers-spa').setIssuedAt().setJti(randomUUID()).setExpirationTime(user.role==='ADMIN'?'5m':'15m').sign(key); }
+export async function verifyAccess(token:string) { return (await jwtVerify(token,key,{algorithms:['HS256'],issuer:'epapers-api',audience:'epapers-spa',requiredClaims:['sub','role','sid','iat','exp','jti']})).payload; }

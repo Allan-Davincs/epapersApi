@@ -1,22 +1,15 @@
 import 'server-only';
 import pino from 'pino';
 import { env } from './env';
-
-export const logger = pino({
-  level: env.LOG_LEVEL,
-  redact: {
-    paths: [
-      'req.headers.authorization', 'req.headers.cookie', 'res.headers.set-cookie',
-      'password', 'passwordHash', 'token', 'refreshToken', 'accessToken', 'otp',
-      'secret', 'apiKey', 'authorization', 'cookie', 'fullName', 'email',
-      'DATABASE_URL', 'R2_ACCESS_KEY_ID', 'R2_SECRET_ACCESS_KEY', 'SMTP_PASSWORD',
-      'SMTP_USER', 'RESEND_API_KEY', 'JWT_ACCESS_SECRET', 'REFRESH_TOKEN_PEPPER',
-      'IP_HASH_SALT', 'TURNSTILE_SECRET', '*.url',
-    ],
-    censor: '[REDACTED]',
-    remove: false,
-  },
-  serializers: {
-    err: pino.stdSerializers.err,
-  },
-});
+const sensitive = /password|hash$|token|otp|secret|apikey|authorization|cookie|fullname|email|url|^r2_|^smtp_|^jwt_|privatekey/i;
+export function scrub(value: unknown): unknown {
+  if (Array.isArray(value)) return value.map(scrub);
+  if (value instanceof Error) return { type: value.name, message: '[REDACTED]' };
+  if (value && typeof value === 'object') return Object.fromEntries(Object.entries(value).map(([k,v]) => [k, sensitive.test(k) ? '[REDACTED]' : scrub(v)]));
+  return value;
+}
+export function createLogger(destination?: pino.DestinationStream) {
+  const options: pino.LoggerOptions = { level: env.LOG_LEVEL, hooks: { logMethod(args, method) { if (typeof args[0] === 'object') args[0] = scrub(args[0]) as object; method.apply(this, args); } } };
+  return destination ? pino(options, destination) : pino(options);
+}
+export const logger = createLogger();

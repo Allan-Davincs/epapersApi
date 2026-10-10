@@ -22,13 +22,15 @@ const schema = z.object({
   R2_INCOMING_BUCKET: z.string().min(3),
   R2_PUBLISHED_BUCKET: z.string().min(3),
   R2_PUBLIC_BASE_URL: z.string().url().or(z.literal('')).default(''),
-  JWT_ACCESS_SECRET: z.string().min(32),
-  REFRESH_TOKEN_PEPPER: z.string().min(32),
-  IP_HASH_SALT: z.string().min(32),
+  JWT_ACCESS_SECRET: z.string().refine(value => Buffer.byteLength(value) >= 32, "Must contain at least 32 bytes"),
+  REFRESH_TOKEN_PEPPER: z.string().refine(value => Buffer.byteLength(value) >= 32, "Must contain at least 32 bytes"),
+  IP_HASH_SALT: z.string().refine(value => Buffer.byteLength(value) >= 32, "Must contain at least 32 bytes"),
+  EMAIL_FROM: z.string().default('EPapers <no-reply@example.com>'),
+  SMTP_DAILY_LIMIT: z.coerce.number().int().positive().default(450),
   EMAIL_PROVIDER: z.enum(['smtp', 'resend']),
   SMTP_HOST: z.string().min(1).optional(),
   SMTP_PORT: z.coerce.number().int().positive().default(465),
-  SMTP_SECURE: boolFromString.default('true'),
+  SMTP_SECURE: boolFromString.default(true),
   SMTP_USER: z.string().optional(),
   SMTP_PASSWORD: z.string().optional(),
   SMTP_FROM: z.string().email().or(z.string().regex(/^.+ <[^<>]+>$/)).optional(),
@@ -50,7 +52,7 @@ const schema = z.object({
 
 const result = schema.safeParse(process.env);
 if (!result.success) {
-  const missing = result.error.issues.map((issue) => `${issue.path.join('.')}: ${issue.message}`).join('\n');
+  const missing = result.error.issues.map((issue) => `${issue.path.join('.')}: invalid or missing value`).join('\n');
   throw new Error(`Invalid backend environment configuration:\n${missing}`);
 }
 

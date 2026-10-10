@@ -12,3 +12,5 @@ dist/
 .turbo/
 .vercel/
 backend.md
+*.tsbuildinfo
+.npm-cache/

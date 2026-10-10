@@ -50,7 +50,7 @@ enum ScanStatus {
 }
 
 model Department {
-  id            String    @id @default(uuid()) @db.Uuid
+  id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   code          String
   codeNormalized String   @map("code_normalized")
   name          String
@@ -67,7 +67,7 @@ model Department {
 }
 
 model Program {
-  id             String       @id @default(uuid()) @db.Uuid
+  id             String       @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   departmentId   String       @map("department_id") @db.Uuid
   code           String
   codeNormalized String       @map("code_normalized")
@@ -87,14 +87,14 @@ model Program {
 }
 
 model Module {
-  id             String    @id @default(uuid()) @db.Uuid
+  id             String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   programId      String    @map("program_id") @db.Uuid
   code           String
   codeNormalized String    @map("code_normalized")
   name           String
   nameNormalized String    @map("name_normalized")
-  semester       Int       @db.SmallInt
-  levelYear      Int?      @map("level_year") @db.SmallInt
+  semester       Int       @db.Int2
+  levelYear      Int?      @map("level_year") @db.Int2
   credits        Decimal?  @db.Decimal(5, 2)
   isActive       Boolean   @default(true) @map("is_active")
   deletedAt      DateTime? @map("deleted_at") @db.Timestamptz
@@ -103,6 +103,7 @@ model Module {
   updatedAt      DateTime  @updatedAt @map("updated_at") @db.Timestamptz
   program        Program   @relation(fields: [programId], references: [id], onDelete: Restrict)
   papers         Paper[]
+  @@unique([id, programId])
   @@index([programId, semester, isActive])
   @@index([codeNormalized])
   @@index([nameNormalized])
@@ -110,20 +111,21 @@ model Module {
 }
 
 model User {
-  id                  String        @id @default(uuid()) @db.Uuid
+  id                  String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   username            String
   usernameNormalized String        @unique @map("username_normalized")
   email               String
   emailNormalized    String        @unique @map("email_normalized")
   fullName            String        @map("full_name")
+  totpSecret          String?       @map("totp_secret")
   passwordHash        String        @map("password_hash")
   role                AccountRole   @default(CONTRIBUTOR)
   status              AccountStatus @default(ACTIVE)
   emailVerifiedAt     DateTime?     @map("email_verified_at") @db.Timestamptz
   lecturerVerifiedAt  DateTime?     @map("lecturer_verified_at") @db.Timestamptz
   homeDepartmentId    String?       @map("home_department_id") @db.Uuid
-  bio                 String        @default("") @db.VarChar(1000)
-  avatarId            String?       @map("avatar_id") @db.VarChar(32)
+  bio                 String        @default("") @db.String(1000)
+  avatarId            String?       @map("avatar_id") @db.String(32)
   xp                  Int           @default(0)
   allTimeXp           Int           @default(0) @map("all_time_xp")
   usernameChangedAt   DateTime?     @map("username_changed_at") @db.Timestamptz
@@ -140,9 +142,11 @@ model User {
 }
 
 model UserSession {
-  id               String    @id @default(uuid()) @db.Uuid
+  id               String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   userId           String    @map("user_id") @db.Uuid
   refreshTokenHash String    @unique @map("refresh_token_hash")
+  familyId         String    @map("family_id") @db.Uuid
+  rotatedAt        DateTime? @map("rotated_at") @db.Timestamptz
   userAgent        String?   @map("user_agent")
   ipHash           String?   @map("ip_hash")
   createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz
@@ -154,7 +158,7 @@ model UserSession {
 }
 
 model StoredFile {
-  id               String     @id @default(uuid()) @db.Uuid
+  id               String     @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   ownerUserId      String?    @map("owner_user_id") @db.Uuid
   bucketName       String     @map("bucket_name")
   objectKey        String     @unique @map("object_key")
@@ -172,13 +176,13 @@ model StoredFile {
 }
 
 model Paper {
-  id                   String        @id @default(uuid()) @db.Uuid
+  id                   String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   moduleId             String        @map("module_id") @db.Uuid
   uploadedByUserId     String        @map("uploaded_by_user_id") @db.Uuid
   title                String
   category             PaperCategory
-  academicYearStart    Int           @map("academic_year_start") @db.SmallInt
-  semester             Int           @db.SmallInt
+  academicYearStart    Int           @map("academic_year_start") @db.Int2
+  semester             Int           @db.Int2
   examPeriod           String        @default("") @map("exam_period")
   examFileId           String        @unique @map("exam_file_id") @db.Uuid
   markingSchemeFileId  String?       @unique @map("marking_scheme_file_id") @db.Uuid
@@ -205,7 +209,7 @@ model Paper {
 }
 
 model Job {
-  id        String    @id @default(uuid()) @db.Uuid
+  id        String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   type      String
   payload   Json
   status    String    @default("pending")
@@ -215,4 +219,43 @@ model Job {
   createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz
   @@index([status, runAt])
   @@map("jobs")
+}
+
+model UsernameRegistry {
+  usernameNormalized String @id @map("username_normalized")
+  userId String @map("user_id") @db.Uuid
+  isCurrent Boolean @default(true) @map("is_current")
+  claimedAt DateTime @default(now()) @map("claimed_at") @db.Timestamptz
+  retiredAt DateTime? @map("retired_at") @db.Timestamptz
+  @@map("username_registry")
+}
+
+model AuthChallenge {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId String @map("user_id") @db.Uuid
+  kind String
+  tokenHash String @map("token_hash")
+  expiresAt DateTime @map("expires_at") @db.Timestamptz
+  attempts Int @default(0)
+  consumedAt DateTime? @map("consumed_at") @db.Timestamptz
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  @@map("auth_challenges")
+}
+
+model AppSetting {
+  key String @id
+  value Json
+  @@map("app_settings")
+}
+
+model AuditLog {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  actorUserId String? @map("actor_user_id") @db.Uuid
+  action String
+  targetType String @map("target_type")
+  targetId String? @map("target_id") @db.Uuid
+  reason String @default("")
+  metadata Json @default("{}")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  @@map("audit_logs")
 }
