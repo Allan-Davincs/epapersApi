@@ -40,6 +40,8 @@ afterAll(async () => {
     if (enabled) {
         await raw.$transaction(async (tx) => {
             await tx.lecturerVerification.deleteMany({ where: { userId: { in: ids } } });
+            await tx.notification.deleteMany({ where: { userId: { in: ids } } });
+            await tx.userSession.deleteMany({ where: { userId: { in: ids } } });
             await tx.paperReview.deleteMany({ where: { paperId: { in: papers } } });
             await tx.paperDownloadEvent.deleteMany({ where: { paperId: { in: papers } } });
             await tx.paperViewEvent.deleteMany({ where: { paperId: { in: papers } } });

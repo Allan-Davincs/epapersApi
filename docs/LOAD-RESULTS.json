@@ -1,0 +1,26 @@
+{
+  "timestamp": "2026-10-10T15:27:38.670Z",
+  "scope": "Service-level concurrency; real CockroachDB and local S3 signing. No HTTP, Cloudflare, R2 bytes, SMTP or Turnstile traffic.",
+  "fixture": {
+    "modules": 200,
+    "papers": 3000
+  },
+  "concurrency": 4,
+  "elapsedMs": 21517,
+  "requestsPerSecond": 3.72,
+  "errors": 0,
+  "search": {
+    "requests": 40,
+    "p50Ms": 820,
+    "p95Ms": 2543,
+    "maxMs": 2591
+  },
+  "download": {
+    "requests": 40,
+    "p50Ms": 1055,
+    "p95Ms": 1615,
+    "maxMs": 2520
+  },
+  "cachedDownloads": 40,
+  "eventCount": 41
+}
