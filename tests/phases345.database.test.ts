@@ -55,7 +55,7 @@ describe.skipIf(!enabled)('Phases 3–5 real CockroachDB with isolated storage a
   const {p,examUploadId,markingSchemeUploadId}=await submit(contributor,module,true);
   await expect(review(admin,p.id,{action:'approved',reason:''})).rejects.toThrow();
   await scanFile(examUploadId);await scanFile(markingSchemeUploadId!);
-  await review(admin,p.id,{action:'approved',reason:''});await review(admin,p.id,{action:'approved',reason:''});
+  await Promise.all([review(admin,p.id,{action:'approved',reason:''}),review(admin,p.id,{action:'approved',reason:''})]);
   expect((await db.user.findUniqueOrThrow({where:{id:contributor.id}})).xp).toBe(80);
   expect(await db.xpLedger.count({where:{paperId:p.id}})).toBe(2);expect(await db.paperReview.count({where:{paperId:p.id}})).toBe(1);
   await expect(download(p.id,'exam','ip-fixture')).rejects.toThrow();
@@ -79,6 +79,15 @@ describe.skipIf(!enabled)('Phases 3–5 real CockroachDB with isolated storage a
   await resolveTakedown(admin,r.id,{status:'approved_removed',note:'Copyright removal fixture'});
   expect((await db.user.findUniqueOrThrow({where:{id:contributor.id}})).xp).toBe(80);await expect(download(p.id,'exam','counter-ip')).rejects.toThrow();
   const notes=await notifications(contributor,{limit:100});expect(JSON.stringify(notes)).not.toContain('"xp"');await expect(readNotification(lecturer,notes.items[0].id)).rejects.toThrow();await readNotification(contributor,notes.items[0].id);
+ },60000);
+ it('awards verified lecturer contributions once after clean scans and hides inactive ancestors',async()=>{
+  const {p,examUploadId}=await submit(lecturer);await scanFile(examUploadId);await finalizeApproval(p.id);await finalizeApproval(p.id);
+  expect((await db.user.findUniqueOrThrow({where:{id:lecturer.id}})).xp).toBe(50);
+  await withTransactionRetry(tx=>tx.module.update({where:{id:module.id},data:{isActive:false}}));
+  expect((await papers(catalogSchemas.papers.parse({moduleId:module.id}))).items).toHaveLength(0);
+  await expect(moduleDetail(module.code)).rejects.toThrow();
+  await withTransactionRetry(tx=>tx.module.update({where:{id:module.id},data:{isActive:true}}));
+  const rejected=await submit();await review(admin,rejected.p.id,{action:'marked_spam',reason:'Spam fixture'});expect(await db.xpLedger.count({where:{paperId:rejected.p.id}})).toBe(0);
  },60000);
  it('approves module requests atomically and excludes admins/inactive accounts from leaderboard',async()=>{
   await expect(moduleRequest({departmentId:lecturer.homeDepartmentId!,programId:otherModule.programId,moduleCode:prefix+'new',moduleName:'Requested module',academicYear:2024,semester:2,description:'Fixture'})).rejects.toThrow();

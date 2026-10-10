@@ -3,6 +3,7 @@ import { storage } from '../src/lib/storage';
 import { env } from '../src/lib/env';
 import { scanProvider } from '../src/modules/uploads/scan';
 import { invalidateDownloads } from '../src/lib/download-cache';
+import { Prisma } from '@prisma/client';
 export async function scanFile(fileId:string){
  const f=await db.storedFile.findUnique({where:{id:fileId}});if(!f || f.scanStatus!=='PENDING' || !f.completedAt)return;
  const result=await scanProvider.scan(await storage.stream(f.bucketName,f.objectKey),Number(f.sizeBytes));
@@ -12,7 +13,7 @@ export async function scanFile(fileId:string){
   const papers=await tx.paper.findMany({where:{OR:[{examFileId:f.id},{markingSchemeFileId:f.id}]}});
   for(const p of papers){
    if(!result.clean){await tx.paper.update({where:{id:p.id},data:{status:'REJECTED',rejectionReason:result.reason}});invalidateDownloads(p.examFileId,p.markingSchemeFileId);}
-   else {if(p.examFileId===f.id)await tx.paper.update({where:{id:p.id},data:{pageCount:result.pageCount}});const duplicate=await tx.storedFile.findFirst({where:{id:{not:f.id},sha256Hex:result.sha256Hex,examPaper:{deletedAt:null,status:{in:['PENDING','APPROVED']}}}});if(duplicate)await tx.paper.update({where:{id:p.id},data:{duplicateWarning:true}});if(p.status==='APPROVED')await tx.job.create({data:{type:'finalize_approval',payload:{paperId:p.id}}});}
+   else {if(p.examFileId===f.id)await tx.paper.update({where:{id:p.id},data:{pageCount:result.pageCount}});const duplicate=await tx.storedFile.findFirst({where:{id:{not:f.id},sha256Hex:result.sha256Hex,examPaper:{id:{not:p.id},deletedAt:null,status:{in:['PENDING','APPROVED']}}}});if(duplicate)await tx.paper.update({where:{id:p.id},data:{duplicateWarning:true}});if(p.status==='APPROVED')await tx.job.create({data:{type:'finalize_approval',payload:{paperId:p.id}}});}
   }
   if(!result.clean)await tx.job.create({data:{type:'delete_file',payload:{fileId:f.id}}});
  });
@@ -40,9 +41,11 @@ export async function rollupEvents(){
   for(const kind of ['view','download'] as const){
    const args={where:{processedAt:null},take:500,orderBy:[{createdAt:'asc' as const},{id:'asc' as const}]};
    const rows=kind==='view'?await tx.paperViewEvent.findMany(args):await tx.paperDownloadEvent.findMany(args);
-   const counts=new Map<string,number>();for(const e of rows)counts.set(e.paperId,(counts.get(e.paperId) || 0)+1);
-   // Entire batch and markers commit together. Serializable retry prevents double counts across workers.
-   for(const [id,count] of counts)await tx.$executeRaw`UPDATE papers SET views_count=views_count+${kind==='view'?count:0},downloads_count=downloads_count+${kind==='download'?count:0} WHERE id=${id}::UUID`;
+   if(!rows.length)continue;
+   const ids=Prisma.join(rows.map(r=>Prisma.sql`${r.id}::UUID`));
+   // Aggregate update and markers commit together; concurrent batches retry serializably.
+   if(kind==='view')await tx.$executeRaw`UPDATE papers SET views_count=papers.views_count+c.amount FROM (SELECT paper_id,count(*) AS amount FROM paper_view_events WHERE id IN (${ids}) GROUP BY paper_id) c WHERE papers.id=c.paper_id`;
+   else await tx.$executeRaw`UPDATE papers SET downloads_count=papers.downloads_count+c.amount FROM (SELECT paper_id,count(*) AS amount FROM paper_download_events WHERE id IN (${ids}) GROUP BY paper_id) c WHERE papers.id=c.paper_id`;
    const update={where:{id:{in:rows.map(r=>r.id)},processedAt:null},data:{processedAt:new Date()}};
    if(kind==='view')await tx.paperViewEvent.updateMany(update);else await tx.paperDownloadEvent.updateMany(update);
   }
