@@ -39,8 +39,11 @@ export async function tick() {
                 }
             }
             const expired = job.type !== 'email_notice' && Date.now() - job.createdAt.getTime() > (job.type === 'email_otp' ? 600000 : 1800000);
-            if (!expired)
-                await emailProvider.send(decrypt<EmailMessage>(p.encrypted!, 'email'));
+            if (!expired) {
+                const message=decrypt<EmailMessage>(p.encrypted!, 'email');
+                const recipient=await db.user.findFirst({where:{emailNormalized:message.to.toLowerCase(),status:'ACTIVE'}});
+                if(recipient)await emailProvider.send(message);
+            }
             if (expired) {
                 await withTransactionRetry(tx => tx.job.updateMany({ where: { id: job.id, leaseToken: token }, data: { status: 'expired', leaseToken: null } }));
                 return;

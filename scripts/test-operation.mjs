@@ -4,4 +4,4 @@ if(!['load-test','restore-drill'].includes(task)||!process.env.TEST_DATABASE_URL
  console.error('Provide TEST_DATABASE_URL naming a disposable test database and a supported check.');process.exit(1);
 }
 const result=spawnSync(process.execPath,['--conditions=react-server','--import','tsx',`scripts/${task}.ts`],{env:{...process.env,DATABASE_URL:process.env.TEST_DATABASE_URL,NODE_ENV:'test'},stdio:'inherit'});
-process.exit(result.status||0);
+process.exit(result.status??1);

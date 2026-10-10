@@ -11,11 +11,13 @@
     "db:generate": "prisma generate",
     "db:migrate": "prisma migrate deploy",
     "db:seed": "node --conditions=react-server --import tsx prisma/seed.ts",
-    "worker": "node --conditions=react-server --import tsx worker/index.ts",
+    "worker": "node --env-file=.env --conditions=react-server --import tsx worker/index.ts",
     "test": "vitest run",
     "test:db": "node --env-file=.env scripts/test-db.mjs",
     "openapi": "node --env-file=.env --conditions=react-server --import tsx scripts/generate-openapi.ts",
-    "check:secrets": "node scripts/check-secrets.mjs"
+    "check:secrets": "node scripts/check-secrets.mjs",
+    "test:load": "node --env-file=.env scripts/test-operation.mjs load-test",
+    "test:restore": "node --env-file=.env scripts/test-operation.mjs restore-drill"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.850.0",

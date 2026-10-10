@@ -16,4 +16,4 @@ export async function purgeExpiredPapers(){
   },{isolationLevel:'Serializable',timeout:20000}));
  }
 }
-export async function expireSecurityRecords(){await withTransactionRetry(async tx=>{await tx.userSession.updateMany({where:{expiresAt:{lte:new Date()},revokedAt:null},data:{revokedAt:new Date()}});await tx.authChallenge.deleteMany({where:{expiresAt:{lt:new Date(Date.now()-86400000)}}});});}
+export async function expireSecurityRecords(){await withTransactionRetry(async tx=>{await tx.userSession.updateMany({where:{expiresAt:{lte:new Date()},revokedAt:null},data:{revokedAt:new Date()}});await tx.job.updateMany({where:{type:{in:['email','email_otp','email_notice']},status:{in:['done','expired','failed']},createdAt:{lt:new Date(Date.now()-7*86400000)}},data:{payload:{}}});await tx.authChallenge.deleteMany({where:{expiresAt:{lt:new Date(Date.now()-86400000)}}});});}
