@@ -42,3 +42,35 @@ The standard TypeScript/JavaScript ESLint rules replace the Next.js lint depende
 npm run lint; npm run typecheck; npm test; npm run test:db; npm run build; npm run openapi; npm run check:secrets; npm audit --audit-level=high.
 
 Regular npm test runs the unit/handler tests and skips database tests unless TEST_DATABASE_URL is explicitly supplied. npm run test:db loads the local test URL, deploys migrations there, seeds curriculum, runs integration tests and writes index plans. It refuses a database whose name does not contain test.
+
+## Phase 3: curriculum and search
+
+Implemented department/program/module selectors and details, program/semester/department filtering, case-insensitive module lookup, paper search/recent/popular/detail, historical-handle public profiles, bounded cursor lists and public cache headers. Public queries require active, non-deleted curriculum ancestors and approved papers. Explicit DTOs expose handles and level titles without personal names, email, account status, file keys or XP.
+
+## Phase 4: uploads and papers
+
+Implemented PDF-only presign with UTC daily quotas, verified account/lockdown checks, generated object keys, signed type/length/create-only PUT headers, owner-only idempotent completion and byte validation. Added file lifecycle fields and worker scan/hash/page estimate hooks. Submissions check completed ownership and reuse, produce duplicate warnings, and enforce the verified lecturer department rule. Public signed downloads require clean, published files and approved papers, use a bounded LRU, and append events independently of signing. Worker rollups update counters and processed markers atomically; abandoned uploads are cleaned after 24 hours.
+
+## Phase 5: moderation and gamification
+
+Implemented admin queue/detail/scanned-file preview/review, positive idempotent +50/+30 approval rewards, user totals, badge progress, private notifications, encrypted review email outbox, authenticated period leaderboards, admin-only XP ledger, flags, takedowns and module requests with admin resolutions. Review writes commit together; durable outbox intents dispatch actual email/publication work after commit. Concurrent approvals and concurrent counter rollups are verified on CockroachDB. Rejection, spam and takedown leave earned XP unchanged. Metadata edits preserve rejection reasons and cannot award XP before scanning.
+
+Migration 0005 adds completion/publication/page-count fields, job lease tokens and deduplication keys, unique reward keys, unprocessed-event indexes and three badge definitions. It was applied successfully to the disposable CockroachDB database and then the configured application database. No frontend code was changed, no dependencies were added, and local credentials remain untracked. The combined implementation is on `backend/phase-5-moderation-gamification`; phase branch names were created in order.
+
+### Phase 3–5 verification
+
+| Check | Result |
+|---|---|
+| ESLint | Pass, no warnings |
+| tsc --noEmit | Pass |
+| Unit/handler tests | 25 passed; database suites intentionally skipped in the unit command |
+| Real CockroachDB suites | 17 passed: 8 auth/foundation and 9 Phase 3–5 tests |
+| Migration deploy | Pass on test and application databases |
+| Standalone Next.js build | Pass |
+| OpenAPI generation | Pass, new request and response schemas included |
+| Dependency audit | 0 vulnerabilities |
+| Tracked secret-file guard | Pass |
+
+The integration suite uses real CockroachDB with isolated mocked storage and Turnstile, and never sends email. It verifies ownership/idempotent completion, unsafe scans, duplicate warnings, department scope, private DTOs, concurrent approval reward uniqueness, publication, concurrent rollup uniqueness, takedowns without XP reversal, notification ownership, module requests, leaderboard exclusions and abandoned upload cleanup. Query plans are refreshed against the retained 200-module/3,000-paper fixture.
+
+Both live R2 bucket probes failed with the current local settings; the user elected to configure R2 later. Live browser PUT/CORS, R2 copy/download, SMTP/Resend delivery and real Turnstile challenges therefore remain unverified. The structural scanner is a safety hook, not antivirus; see [uploads and moderation](UPLOADS-MODERATION.md) for setup, examples, scan limitations and signed URL expiry behavior. Broader admin CRUD/restore/purge is Phase 6; load testing and deployment hardening are Phase 7.
