@@ -5683,9 +5683,8 @@
     "/flags": {
       "post": {
         "summary": "/flags",
-        "description": "Optional bearer authentication associates the request with the current account. Responses use Cache-Control: no-store. ",
+        "description": "Authentication required. Responses use Cache-Control: no-store. ",
         "security": [
-          {},
           {
             "bearerAuth": []
           }
@@ -6092,9 +6091,8 @@
     "/takedowns": {
       "post": {
         "summary": "/takedowns",
-        "description": "Optional bearer authentication associates the request with the current account. Responses use Cache-Control: no-store. ",
+        "description": "Authentication required. Responses use Cache-Control: no-store. ",
         "security": [
-          {},
           {
             "bearerAuth": []
           }
@@ -11330,9 +11328,8 @@
     "/contact-messages": {
       "post": {
         "summary": "/contact-messages",
-        "description": "Optional bearer identity. Cache-Control: no-store. Exact APP_ORIGIN and X-EPapers-Client required. ",
+        "description": "Current active account/session required. Cache-Control: no-store. Exact APP_ORIGIN and X-EPapers-Client required. ",
         "security": [
-          {},
           {
             "bearerAuth": []
           }
@@ -12061,19 +12058,13 @@
             "type": "string",
             "minLength": 2,
             "maxLength": 160
-          },
-          "turnstileToken": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 2048
           }
         },
         "required": [
           "username",
           "email",
           "password",
-          "fullName",
-          "turnstileToken"
+          "fullName"
         ],
         "additionalProperties": false
       },
@@ -12190,16 +12181,10 @@
             "maxLength": 254,
             "format": "email",
             "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
-          },
-          "turnstileToken": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 2048
           }
         },
         "required": [
-          "email",
-          "turnstileToken"
+          "email"
         ],
         "additionalProperties": false
       },
@@ -15636,17 +15621,11 @@
             "default": "",
             "type": "string",
             "maxLength": 2000
-          },
-          "turnstileToken": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 2048
           }
         },
         "required": [
           "paperId",
-          "reason",
-          "turnstileToken"
+          "reason"
         ],
         "additionalProperties": false
       },
@@ -15683,11 +15662,6 @@
             "default": "",
             "type": "string",
             "maxLength": 4000
-          },
-          "turnstileToken": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 2048
           }
         },
         "required": [
@@ -15695,8 +15669,7 @@
           "requesterFullName",
           "requesterEmail",
           "affiliation",
-          "reason",
-          "turnstileToken"
+          "reason"
         ],
         "additionalProperties": false
       },
@@ -18106,19 +18079,13 @@
             "type": "string",
             "minLength": 10,
             "maxLength": 4000
-          },
-          "turnstileToken": {
-            "type": "string",
-            "minLength": 1,
-            "maxLength": 2048
           }
         },
         "required": [
           "senderName",
           "senderEmail",
           "subject",
-          "message",
-          "turnstileToken"
+          "message"
         ],
         "additionalProperties": false
       },

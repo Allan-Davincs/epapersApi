@@ -7,7 +7,6 @@ import { decrypt, encrypt } from '../src/lib/encryption';
 import { randomUUID, createHmac } from 'node:crypto';
 import { hashPassword, tokenHash } from '../src/lib/crypto';
 import { login, refresh, authenticate, verifyOtp, resetPassword, updateProfile, reauthenticate } from '../src/modules/auth/service';
-vi.mock('../src/lib/turnstile', () => ({ verifyTurnstile: vi.fn() }));
 const jobs: string[] = [];
 const enabled = process.env.EPAPERS_DB_TESTS_ENABLED === 'true';
 const db = new PrismaClient();
@@ -31,7 +30,7 @@ describe.skipIf(!enabled)('real CockroachDB foundation and auth', () => {
         const suffix = randomUUID().replaceAll('-', '').slice(0, 12);
         const email = suffix + '@example.com';
         const started = new Date();
-        const response = await registerRoute(new NextRequest('https://api.example.com/api/v1/auth/register', { method: 'POST', headers: { Origin: 'https://app.example.com', 'X-EPapers-Client': 'web', 'Content-Type': 'application/json' }, body: JSON.stringify({ username: 'signup_' + suffix, email, fullName: 'Registration Fixture', password: 'Unique test password for EPapers', role: 'lecturer', turnstileToken: 'mock-captcha' }) }));
+        const response = await registerRoute(new NextRequest('https://api.example.com/api/v1/auth/register', { method: 'POST', headers: { Origin: 'https://app.example.com', 'X-EPapers-Client': 'web', 'Content-Type': 'application/json' }, body: JSON.stringify({ username: 'signup_' + suffix, email, fullName: 'Registration Fixture', password: 'Unique test password for EPapers', role: 'lecturer' }) }));
         expect(response.status).toBe(200);
         const u = await db.user.findUniqueOrThrow({ where: { emailNormalized: email } });
         created.push(u.id);

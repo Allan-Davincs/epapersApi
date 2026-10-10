@@ -28,10 +28,10 @@ Keep access JWT in memory. Send `Authorization: Bearer <accessToken>` for authen
 | `markNotificationRead` | `PATCH /notifications/{id}` with `{ read: true }`, owner-only. |
 | `markAllNotificationsRead` | `POST /notifications/read-all` with `{}`; no userId parameter. |
 | `getFlags` | `GET /admin/flags`, admin queue. |
-| `submitFlag` | `POST /flags` with paperId/reason/details/turnstileToken. Optional authenticated identity; omit mock status/reportedAt/username/id. |
+| `submitFlag` | `POST /flags` with paperId/reason/details. Optional authenticated identity; omit mock status/reportedAt/username/id. |
 | `resolveFlag` | `PATCH /admin/flags/{id}` with status resolved/dismissed and required note. |
 | `getTakedowns` | `GET /admin/takedowns`, admin queue. |
-| `submitTakedown` | `POST /takedowns` with paperId/requesterFullName/requesterEmail/affiliation/reason/evidence/turnstileToken; omit generated fields. |
+| `submitTakedown` | `POST /takedowns` with paperId/requesterFullName/requesterEmail/affiliation/reason/evidence; omit generated fields. |
 | `resolveTakedown` | `PATCH /admin/takedowns/{id}` with status approved_removed/rejected and required note. Prior awards remain positive. |
 | `getModuleRequests` | `GET /admin/module-requests`, admin queue. |
 | `submitModuleRequest` | `POST /module-requests` with departmentId/programId/moduleCode/moduleName/integer academicYear/semester/description. Program and department must match. |

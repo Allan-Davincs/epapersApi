@@ -1,6 +1,8 @@
 # EPapers API
 
-Strict TypeScript API for DIT using Next.js App Router, Prisma and CockroachDB. The separate frontend is unchanged. Base path: `/api/v1`.
+Import [postman.json](postman.json) and the [blank environment](postman/epapers.environment.json) to test all API operations. The [Postman guide](docs/POSTMAN.md) explains every endpoint, variables, authentication, upload flow, safe run gates and response tests. Regenerate with `npm run postman`; verify offline with `npm run check:postman`.
+
+Strict TypeScript API for DIT using Next.js App Router, Prisma and CockroachDB. Base path: `/api/v1`. Contact, flags, and takedowns require JWT authentication; registration and recovery remain public. See [current authentication setup](docs/TURNSTILE.md).
 
 ## Setup
 
@@ -20,8 +22,8 @@ Strict TypeScript API for DIT using Next.js App Router, Prisma and CockroachDB. 
 
 The versioned curriculum seed includes only departments/programs, no modules, users, passwords, Masters or vocational certificates. Programme assignments flagged in `prisma/seed/curriculum-v1.json` require prospectus verification before production. Module CSV contract: `code,name,programCode,semester,levelYear,credits`; `/api/v1/admin/modules/import` supports dry-run and atomic commit.
 
-See [auth contract](docs/AUTH.md) and [phase verification](docs/PHASES.md). Production email/Turnstile delivery needs configured service credentials. `DATA_ENCRYPTION_KEY` encrypts email outbox and admin TOTP secrets; back it up securely and keep it separate from JWT and refresh secrets.
+See [auth contract](docs/AUTH.md) and [phase verification](docs/PHASES.md). Production email delivery needs configured service credentials. `DATA_ENCRYPTION_KEY` encrypts email outbox and admin TOTP secrets; back it up securely and keep it separate from JWT and refresh secrets.
 
 Phases 3–5 add curriculum/search, private PDF uploads, signed downloads, moderation, achievements, notifications, authenticated leaderboards and reporting queues. See [uploads and moderation](docs/UPLOADS-MODERATION.md) for request examples, worker behavior and remaining live service setup.
 
-Phases 6–8 add [guarded administration and retention](docs/ADMIN.md), [security checks](docs/SECURITY.md), [deployment templates](docs/DEPLOY.md), [load/index evidence](docs/INDEXES.md), [backup/restore notes](docs/BACKUP-RESTORE.md) and a complete [frontend integration mapping](docs/FRONTEND-INTEGRATION.md). The [manual checklist](docs/MANUAL.md) identifies live service and operator checks still pending. OpenAPI covers every implemented route; no frontend files were changed.
+Phases 6–8 add [guarded administration and retention](docs/ADMIN.md), [security checks](docs/SECURITY.md), [deployment templates](docs/DEPLOY.md), [load/index evidence](docs/INDEXES.md), [backup/restore notes](docs/BACKUP-RESTORE.md) and a complete [frontend integration mapping](docs/FRONTEND-INTEGRATION.md). The [manual checklist](docs/MANUAL.md) identifies live service and operator checks still pending. OpenAPI covers every implemented route.

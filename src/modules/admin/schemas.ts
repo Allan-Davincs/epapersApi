@@ -22,6 +22,6 @@ export const adminSchemas = {
     verificationReview: z.strictObject({ status: z.enum(['approved', 'rejected']), reason }),
     queue: z.strictObject({ ...pagination, status: z.enum(['pending', 'approved', 'rejected']).optional() }),
     audit: z.strictObject({ ...pagination, actorUserId: uuid.optional(), targetId: uuid.optional(), targetType: z.string().max(40).optional(), action: z.string().max(80).optional() }),
-    contact: z.strictObject({ senderName: z.string().trim().min(2).max(160), senderEmail: z.string().email().max(254), subject: z.string().trim().min(2).max(240), message: z.string().trim().min(10).max(4000), turnstileToken: z.string().min(1).max(2048) }),
+    contact: z.strictObject({ senderName: z.string().trim().min(2).max(160), senderEmail: z.string().email().max(254), subject: z.string().trim().min(2).max(240), message: z.string().trim().min(10).max(4000) }),
     contactReview: z.strictObject({ status: z.enum(['new', 'in_progress', 'closed']), reason }),
 };

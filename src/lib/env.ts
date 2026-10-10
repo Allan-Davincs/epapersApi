@@ -36,7 +36,6 @@ const schema = z.object({
     SMTP_PASSWORD: z.string().optional(),
     SMTP_FROM: z.string().email().or(z.string().regex(/^.+ <[^<>]+>$/)).optional(),
     RESEND_API_KEY: z.string().optional(),
-    TURNSTILE_SECRET: z.string().min(1),
     MAX_UPLOAD_BYTES: z.coerce.number().int().positive().default(15 * 1024 * 1024),
     DAILY_UPLOAD_QUOTA: z.coerce.number().int().positive().default(20),
     SIGNED_URL_TTL_SECONDS: z.coerce.number().int().min(600).max(600).default(600),

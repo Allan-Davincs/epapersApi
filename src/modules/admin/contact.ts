@@ -4,13 +4,12 @@ import { z } from 'zod';
 import { adminSchemas } from './schemas';
 import { db, withTransactionRetry } from '../../lib/db';
 import { authorize } from '../auth/service';
-import { verifyTurnstile } from '../../lib/turnstile';
 import { fail } from '../../lib/errors';
 import { adminGuard, audit } from './guard';
 import { paging } from './service';
 import { page } from '../catalog/service';
-export async function contact(input: z.infer<typeof adminSchemas.contact>, user?: User) { if (user)
-    authorize(user, {}); await verifyTurnstile(input.turnstileToken); const c = await withTransactionRetry(tx => tx.contactMessage.create({ data: { senderUserId: user?.id, senderName: input.senderName, senderEmail: input.senderEmail, subject: input.subject, message: input.message } })); return { id: c.id, status: c.status }; }
+export async function contact(input: z.infer<typeof adminSchemas.contact>, user: User) {
+    authorize(user, {}); const c = await withTransactionRetry(tx => tx.contactMessage.create({ data: { senderUserId: user?.id, senderName: input.senderName, senderEmail: input.senderEmail, subject: input.subject, message: input.message } })); return { id: c.id, status: c.status }; }
 export async function contacts(admin: User, q: {
     cursor?: string;
     limit: number;

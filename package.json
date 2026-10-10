@@ -20,7 +20,9 @@
     "test:restore": "node --env-file=.env scripts/test-operation.mjs restore-drill",
     "test:indexes": "node --env-file=.env scripts/test-operation.mjs explain-indexes",
     "test:admin": "node --env-file=.env scripts/test-operation.mjs admin-tests",
-    "test:smoke": "node --env-file=.env scripts/smoke-built.mjs"
+    "test:smoke": "node --env-file=.env scripts/smoke-built.mjs",
+    "postman": "node scripts/generate-postman.mjs",
+    "check:postman": "node scripts/check-postman.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.850.0",

@@ -49,7 +49,7 @@ async function main() {
             }
         } }));
         const elapsedMs = Math.round(performance.now() - start), eventCount = await db.paperDownloadEvent.count({ where: { paperId: paper.id } });
-        const report = { timestamp: new Date().toISOString(), scope: 'Service-level concurrency; real CockroachDB and local S3 signing. No HTTP, Cloudflare, R2 bytes, SMTP or Turnstile traffic.', fixture, concurrency, elapsedMs, requestsPerSecond: Number((total / (elapsedMs / 1000)).toFixed(2)), errors, search: summarize(samples.search), download: summarize(samples.download), cachedDownloads: reused, eventCount };
+        const report = { timestamp: new Date().toISOString(), scope: 'Service-level concurrency; real CockroachDB and local S3 signing. No HTTP, Cloudflare, R2 bytes, SMTP traffic.', fixture, concurrency, elapsedMs, requestsPerSecond: Number((total / (elapsedMs / 1000)).toFixed(2)), errors, search: summarize(samples.search), download: summarize(samples.download), cachedDownloads: reused, eventCount };
         writeFileSync('docs/LOAD-RESULTS.json', JSON.stringify(report, null, 2) + '\n');
         console.info(JSON.stringify(report, null, 2));
         if (errors || reused !== 40 || eventCount !== 41)

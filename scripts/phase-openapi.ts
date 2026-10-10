@@ -74,7 +74,7 @@ export function addPhasePaths(paths: Record<string, unknown>, definitions: Recor
     add('/notifications/read-all', 'post', 'empty', 'message', 'authenticated');
     add('/admin/users/{id}/xp-ledger', 'get', 'catalog_departments', 'ledgerPage', 'admin');
     for (const [path, input, resolve, output] of [['flags', 'moderation_flags', 'moderation_resolveFlag', 'flagPage'], ['takedowns', 'moderation_takedowns', 'moderation_resolveTakedown', 'takedownPage'], ['module-requests', 'moderation_moduleRequests', 'moderation_resolveModule', 'moduleRequestPage']] as const) {
-        add('/' + path, 'post', input, 'receipt', 'optional');
+        add('/' + path, 'post', input, 'receipt', path === 'module-requests' ? 'optional' : 'authenticated');
         add('/admin/' + path, 'get', 'moderation_queue', output, 'admin');
         add('/admin/' + path + '/{id}', 'patch', resolve, 'receipt', 'admin');
     }

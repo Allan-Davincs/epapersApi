@@ -19,6 +19,7 @@ jobs:
         env:
           DATABASE_URL: postgresql://root@localhost:26257/epapers_test?sslmode=disable
       - run: npm run check:secrets
+      - run: npm run check:postman
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test

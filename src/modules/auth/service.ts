@@ -7,7 +7,6 @@ import { fail } from '../../lib/errors';
 import { hashPassword, verifyPassword, opaqueToken, tokenHash, otp, verifyTotp } from '../../lib/crypto';
 import { signAccess, verifyAccess, signReauthentication } from '../../lib/jwt';
 import { rateLimit } from '../../lib/rate-limit';
-import { verifyTurnstile } from '../../lib/turnstile';
 import { otpEmail, resetEmail } from '../../lib/email/templates';
 import { privateUser } from './dto';
 import { audit, challenge } from './repository';
@@ -27,11 +26,9 @@ export async function register(input: {
     email: string;
     password: string;
     fullName: string;
-    turnstileToken: string;
     role?: 'contributor' | 'lecturer';
 }) {
     await rateLimit('register-email:' + tokenHash(input.email), 5, 3600);
-    await verifyTurnstile(input.turnstileToken);
     const passwordHash = await hashPassword(input.password);
     return withTransactionRetry(async (tx) => {
         const settings = await tx.$queryRaw<Array<{
@@ -54,10 +51,8 @@ export async function register(input: {
         return generic;
     });
 }
-export async function resend(email: string, kind: 'otp' | 'reset', turnstileToken?: string) {
+export async function resend(email: string, kind: 'otp' | 'reset') {
     await rateLimit(kind + '-email:' + tokenHash(email), 5, 3600);
-    if (kind === 'reset')
-        await verifyTurnstile(turnstileToken!);
     return withTransactionRetry(async (tx) => {
         const user = await tx.user.findUnique({ where: { emailNormalized: email } });
         if (!user || user.deletedAt || user.status !== 'ACTIVE' || (kind === 'otp' && user.emailVerifiedAt))

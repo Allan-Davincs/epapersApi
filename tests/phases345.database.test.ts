@@ -11,7 +11,6 @@ import { moderationSchemas } from '../src/modules/moderation/schemas';
 import { scanFile, rollupEvents, cleanAbandoned } from '../worker/files';
 import { finalizeApproval, reviewEffects } from '../worker/moderation';
 import { env } from '../src/lib/env';
-vi.mock('../src/lib/turnstile', () => ({ verifyTurnstile: vi.fn().mockResolvedValue(undefined) }));
 const enabled = process.env.EPAPERS_DB_TESTS_ENABLED === 'true';
 const prefix = 'p345_' + randomUUID().replaceAll('-', '').slice(0, 10);
 const objects = new Map<string, Buffer>();
@@ -124,9 +123,9 @@ describe.skipIf(!enabled)('Phases 3–5 real CockroachDB with isolated storage a
     }, 60000);
     it('never reverses XP on takedown, blocks further downloads and restricts private notifications', async () => {
         const p = await db.paper.findFirstOrThrow({ where: { id: { in: paperIds }, status: 'APPROVED', uploadedByUserId: contributor.id } });
-        const report = await flag({ paperId: p.id, reason: 'copyright', details: 'Test report', turnstileToken: 'mock' });
+        const report = await flag({ paperId: p.id, reason: 'copyright', details: 'Test report' }, contributor);
         expect(report.status).toBe('pending');
-        const r = await takedown({ paperId: p.id, requesterFullName: 'Private Requester', requesterEmail: 'requester@example.com', affiliation: 'Fixture', reason: 'Copyright fixture request', evidence: 'Test evidence', turnstileToken: 'mock' });
+        const r = await takedown({ paperId: p.id, requesterFullName: 'Private Requester', requesterEmail: 'requester@example.com', affiliation: 'Fixture', reason: 'Copyright fixture request', evidence: 'Test evidence' }, contributor);
         await expect(queue(contributor, 'takedowns', moderationSchemas.queue.parse({}))).rejects.toThrow();
         await resolveTakedown(admin, r.id, { status: 'approved_removed', note: 'Copyright removal fixture' });
         expect((await db.user.findUniqueOrThrow({ where: { id: contributor.id } })).xp).toBe(80);

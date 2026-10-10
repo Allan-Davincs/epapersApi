@@ -8,7 +8,6 @@ import { activeModule, activeProgram, publicPaper, page, cursorId } from '../cat
 import { paperDto, paperInclude } from '../catalog/dto';
 import { grantApproval } from '../gamification/service';
 import { invalidateDownloads } from '../../lib/download-cache';
-import { verifyTurnstile } from '../../lib/turnstile';
 import { storage } from '../../lib/storage';
 import { levelTitleForXp } from '../../lib/levels';
 import { moderationSchemas } from './schemas';
@@ -55,11 +54,11 @@ export async function reviewFile(admin: User, id: string, kind: 'exam' | 'markin
 export async function adminPapers(admin: User, q: z.infer<typeof moderationSchemas.adminPapers>) { authorize(admin, { roles: ['admin'] }); const id = cursorId(q.cursor); return page(await db.paper.findMany({ where: { status: q.status, moduleId: q.moduleId, module: { programId: q.programId, program: { departmentId: q.departmentId } } }, include: paperInclude, orderBy: { id: 'desc' }, take: q.limit + 1, ...(id ? { cursor: { id }, skip: 1 } : {}) }), q.limit, p => ({ ...paperDto(p), status: p.status.toLowerCase(), rejectionReason: p.rejectionReason, duplicateWarning: p.duplicateWarning, scanStatus: p.examFile.scanStatus.toLowerCase() })); }
 export async function adminPaper(admin: User, id: string) { authorize(admin, { roles: ['admin'] }); const p = await db.paper.findUnique({ where: { id }, include: paperInclude }); if (!p)
     fail(404, 'NOT_FOUND', 'Paper not found'); return { ...paperDto(p), status: p.status.toLowerCase(), duplicateWarning: p.duplicateWarning, rejectionReason: p.rejectionReason, uploads: { exam: { id: p.examFile.id, scanStatus: p.examFile.scanStatus.toLowerCase() }, markingScheme: p.markingSchemeFile ? { id: p.markingSchemeFile.id, scanStatus: p.markingSchemeFile.scanStatus.toLowerCase() } : null }, reviews: (await db.paperReview.findMany({ where: { paperId: id }, orderBy: { createdAt: 'desc' }, take: 100 })).map(r => ({ id: r.id, action: r.action, reason: r.reason, createdAt: r.createdAt.toISOString() })) }; }
-export async function flag(input: z.infer<typeof moderationSchemas.flags>, user?: User) { if (user)
-    authorize(user, {}); await verifyTurnstile(input.turnstileToken); return withTransactionRetry(async (tx) => { if (!await tx.paper.findFirst({ where: { id: input.paperId, ...publicPaper } }))
+export async function flag(input: z.infer<typeof moderationSchemas.flags>, user: User) {
+    authorize(user, {}); return withTransactionRetry(async (tx) => { if (!await tx.paper.findFirst({ where: { id: input.paperId, ...publicPaper } }))
     fail(404, 'NOT_FOUND', 'Paper not found'); const r = await tx.flaggedReport.create({ data: { paperId: input.paperId, reason: input.reason, details: input.details, reportedByUserId: user?.id } }); return { id: r.id, status: r.status }; }); }
-export async function takedown(input: z.infer<typeof moderationSchemas.takedowns>, user?: User) { if (user)
-    authorize(user, {}); await verifyTurnstile(input.turnstileToken); return withTransactionRetry(async (tx) => { if (!await tx.paper.findFirst({ where: { id: input.paperId, ...publicPaper } }))
+export async function takedown(input: z.infer<typeof moderationSchemas.takedowns>, user: User) {
+    authorize(user, {}); return withTransactionRetry(async (tx) => { if (!await tx.paper.findFirst({ where: { id: input.paperId, ...publicPaper } }))
     fail(404, 'NOT_FOUND', 'Paper not found'); const r = await tx.takedownRequest.create({ data: { paperId: input.paperId, requesterFullName: input.requesterFullName, requesterEmail: input.requesterEmail, affiliation: input.affiliation, reason: input.reason, evidence: input.evidence, requesterUserId: user?.id } }); return { id: r.id, status: r.status }; }); }
 export async function moduleRequest(input: z.infer<typeof moderationSchemas.moduleRequests>, user?: User) { if (user)
     authorize(user, {}); return withTransactionRetry(async (tx) => { if (!await tx.program.findFirst({ where: { id: input.programId, departmentId: input.departmentId, ...activeProgram } }))

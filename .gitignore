@@ -14,3 +14,4 @@ dist/
 backend.md
 *.tsbuildinfo
 .npm-cache/
+postman.json

@@ -2,7 +2,7 @@
 
 Phase 1 provides strict TypeScript configuration, a standalone Next.js API build, startup environment validation, recursively redacted pino logs, standard errors and security headers, serializable transaction retries (SQLSTATE 40001 / Prisma P2034), default soft-delete filtering and an explicit withDeleted escape hatch, CockroachDB schema/migrations, partial and hash-sharded indexes, idempotent versioned DIT curriculum seeds, a database health handler, and CI for lint/typecheck/tests/dependency audit/gitleaks/secret-file checks.
 
-Phase 2 provides registration as contributor/lecturer (no admin self-registration), Turnstile verification, hashed expiring OTPs with cooldown/attempt limits, Argon2id passwords and common-password rejection, minimal signed JWTs, rotating peppered refresh hashes, family revocation on token reuse, logout/all-session logout, session listing/revocation, single-use password reset with session revocation, username availability and transactional registry changes with historical reservations/cooldown/audit, private account DTOs with levelTitle and no XP, admin TOTP login and reauthentication, strict input/body limits, Origin/header CSRF and credentialed CORS, database-backed rate limits, interchangeable SMTP/Resend adapters, and an encrypted email outbox worker with retry/budget/expiry handling.
+Phase 2 provides registration as contributor/lecturer (no admin self-registration), hashed expiring OTPs with cooldown/attempt limits, Argon2id passwords and common-password rejection, minimal signed JWTs, rotating peppered refresh hashes, family revocation on token reuse, logout/all-session logout, session listing/revocation, single-use password reset with session revocation, username availability and transactional registry changes with historical reservations/cooldown/audit, private account DTOs with levelTitle and no XP, admin TOTP login and reauthentication, strict input/body limits, Origin/header CSRF and credentialed CORS, database-backed rate limits, interchangeable SMTP/Resend adapters, and an encrypted email outbox worker with retry/budget/expiry handling.
 
 ## Database verification
 
@@ -15,7 +15,7 @@ Index verification uses 200 test modules and 3,000 test papers, explicitly check
 ## Manual setup before production
 
 - Confirm programme assignments flagged in the versioned seed against the DIT prospectus.
-- Configure real Google SMTP or Resend sender credentials and Turnstile hostname/site keys. Live external email delivery and real browser challenges are not exercised by automated tests.
+- Configure real Google SMTP or Resend sender credentials. Live external email delivery are not exercised by automated tests.
 - Keep DATA_ENCRYPTION_KEY secure and backed up; losing it prevents decrypting queued emails and admin TOTP secrets. Admin provisioning/enrollment/recovery remains manual until Phase 6. Sensitive future admin actions must enforce the reauthentication wrapper.
 - Serve the API and SPA over HTTPS under the same registrable domain. Secure refresh cookies require HTTPS during development too. Restrict VPS ingress to Cloudflare before trusting cf-connecting-ip.
 - CI configuration is checked in; its hosted gitleaks job has not been run from this local environment. The local tracked-file check confirms environment/private-key files are not tracked. The gitleaks allowlist is limited to the public RFC 6238 test vector.
@@ -72,9 +72,9 @@ Migration 0005 adds completion/publication/page-count fields, job lease tokens a
 | Dependency audit | 0 vulnerabilities |
 | Tracked secret-file guard | Pass |
 
-The integration suite uses real CockroachDB with isolated mocked storage and Turnstile, and never sends email. It verifies ownership/idempotent completion, unsafe scans, duplicate warnings, department scope, private DTOs, concurrent approval reward uniqueness, publication, concurrent rollup uniqueness, takedowns without XP reversal, notification ownership, module requests, leaderboard exclusions and abandoned upload cleanup. Query plans are refreshed against the retained 200-module/3,000-paper fixture.
+The integration suite uses real CockroachDB with isolated mocked storage, and never sends email. It verifies ownership/idempotent completion, unsafe scans, duplicate warnings, department scope, private DTOs, concurrent approval reward uniqueness, publication, concurrent rollup uniqueness, takedowns without XP reversal, notification ownership, module requests, leaderboard exclusions and abandoned upload cleanup. Query plans are refreshed against the retained 200-module/3,000-paper fixture.
 
-Both live R2 bucket probes failed with the current local settings; the user elected to configure R2 later. Live browser PUT/CORS, R2 copy/download, SMTP/Resend delivery and real Turnstile challenges therefore remain unverified. The structural scanner is a safety hook, not antivirus; see [uploads and moderation](UPLOADS-MODERATION.md) for setup, examples, scan limitations and signed URL expiry behavior. Broader admin CRUD/restore/purge is Phase 6; load testing and deployment hardening are Phase 7.
+Both live R2 bucket probes failed with the current local settings; the user elected to configure R2 later. Live browser PUT/CORS, R2 copy/download, SMTP/Resend delivery therefore remain unverified. The structural scanner is a safety hook, not antivirus; see [uploads and moderation](UPLOADS-MODERATION.md) for setup, examples, scan limitations and signed URL expiry behavior. Broader admin CRUD/restore/purge is Phase 6; load testing and deployment hardening are Phase 7.
 
 ## Phase 6: administration
 
@@ -116,4 +116,4 @@ Phase branches were created in order: `backend/phase-6-admin`, `backend/phase-7-
 | npm audit | 0 vulnerabilities |
 | Tracked secret-file guard | Pass |
 
-Nonblocking tooling notices remain: Prisma's package.json config deprecation, Vitest config-loader notice and Next.js ESLint-plugin notice. Hosted CI/gitleaks has not been run by this session. Live R2, SMTP/Resend, Turnstile, VPS installation, full native backup/object restore and production HTTP capacity remain unverified; these are documented external checks rather than claimed successful deployment.
+Nonblocking tooling notices remain: Prisma's package.json config deprecation, Vitest config-loader notice and Next.js ESLint-plugin notice. Hosted CI/gitleaks has not been run by this session. Live R2, SMTP/Resend, VPS installation, full native backup/object restore and production HTTP capacity remain unverified; these are documented external checks rather than claimed successful deployment.
