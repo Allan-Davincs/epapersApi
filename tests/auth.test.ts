@@ -3,7 +3,7 @@ import { NextRequest } from 'next/server';
 import { SignJWT } from 'jose';
 import { signAccess,verifyAccess,signReauthentication,verifyReauthentication } from '../src/lib/jwt';
 import { schemas } from '../src/modules/auth/schemas';
-import { tokenHash,hashPassword,verifyPassword } from '../src/lib/crypto';
+import { tokenHash,hashPassword,verifyPassword,verifyTotp } from '../src/lib/crypto';
 import { privateUser } from '../src/modules/auth/dto';
 import { route,sessionResponse,preflight } from '../src/modules/auth/routes-helpers';
 import type { User } from '@prisma/client';
@@ -14,6 +14,7 @@ describe('authentication security',()=>{
  it('separates admin reauthentication and access JWT audiences',async()=>{const reauth=await signReauthentication('admin','session');expect((await verifyReauthentication(reauth)).purpose).toBe('reauth');await expect(verifyAccess(reauth)).rejects.toThrow();const access=await signAccess({id:'admin',role:'ADMIN'},'session');await expect(verifyReauthentication(access)).rejects.toThrow();});
  it('rejects altered tokens',async()=>{const token=await signAccess({id:'user',role:'CONTRIBUTOR'},'session'); await expect(verifyAccess(token.slice(0,-5)+'xxxxx')).rejects.toThrow();});
  it('rejects admin registration, unknown fields, and avatar URLs',()=>{ const input={username:'test_user',email:'test@example.com',password:'a-strong-passphrase',fullName:'Test User',turnstileToken:'captcha'}; expect(schemas.register.parse({...input,role:'lecturer'}).role).toBe('lecturer'); expect(schemas.register.safeParse({...input,role:'admin'}).success).toBe(false); expect(schemas.register.safeParse({...input,xp:100}).success).toBe(false); expect(schemas.profile.safeParse({avatarId:'https://example.com/a.png'}).success).toBe(false); });
+ it('verifies TOTP against the RFC 6238 test vector',()=>{vi.useFakeTimers();try {vi.setSystemTime(new Date(59000));expect(verifyTotp('GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ','287082')).toBe(true);expect(verifyTotp('GEZDGNBVGY3TQOJQGEZDGNBVGY3TQOJQ','111111')).toBe(false);}finally{vi.useRealTimers();}});
  it('uses salted token hashes and Argon2id',async()=>{expect(tokenHash('secret')).not.toContain('secret');const hash=await hashPassword('A long unique test password');expect(hash).toContain('$argon2id$');expect(await verifyPassword(hash,'wrong')).toBe(false);expect(await verifyPassword(hash,'A long unique test password')).toBe(true);await expect(hashPassword('password123')).rejects.toThrow();});
  it('private DTO never exposes XP or credentials',()=>{const dto=privateUser({id:'id',username:'user',email:'user@example.com',fullName:'Private',bio:'',avatarId:null,role:'CONTRIBUTOR',emailVerifiedAt:null,xp:999,passwordHash:'secret',joinedAt:new Date()} as User);expect(dto.levelTitle).toBe('Senior Curator'); for(const key of ['xp','allTimeXp','passwordHash','totpSecret','status']) expect(dto).not.toHaveProperty(key);});
  it('rejects missing origin and client header before invoking service',async()=>{const action=vi.fn(); const handler=route('test',schemas.empty,action);const response=await handler(new NextRequest('https://api.example.com/api/v1/test',{method:'POST',body:'{}'})); expect(response.status).toBe(403);expect(action).not.toHaveBeenCalled();expect(response.headers.get('X-Content-Type-Options')).toBe('nosniff');});
