@@ -9,6 +9,8 @@ import { paperDto,paperInclude } from '../catalog/dto';
 import { grantApproval } from '../gamification/service';
 import { invalidateDownloads } from '../../lib/download-cache';
 import { verifyTurnstile } from '../../lib/turnstile';
+import { storage } from '../../lib/storage';
+import { levelTitleForXp } from '../../lib/levels';
 import { moderationSchemas } from './schemas';
 async function adminCurrent(tx:TransactionClient,id:string){const u=await tx.user.findUnique({where:{id}});if(!u)fail(401,'UNAUTHORIZED','Authentication required');authorize(u,{roles:['admin']});}
 async function audit(tx:TransactionClient,actor:string,action:string,targetType:string,targetId:string,reason:string){await tx.auditLog.create({data:{actorUserId:actor,action,targetType,targetId,reason}});}
@@ -30,8 +32,9 @@ export async function review(admin:User,id:string,input:z.infer<typeof moderatio
   await tx.job.create({data:{type:'review_effects',payload:{paperId:id,reviewId:r.id,action:input.action}}});
   return {id,status:status.toLowerCase(),examFileId:p.examFileId,markingSchemeFileId:p.markingSchemeFileId};
  });
- invalidateDownloads(result.examFileId,result.markingSchemeFileId);return {id:result.id,status:result.status};
+ invalidateDownloads(result.examFileId,result.markingSchemeFileId);const p=await db.paper.findUniqueOrThrow({where:{id},include:{uploader:true}});return {id:result.id,status:result.status,levelTitle:levelTitleForXp(p.uploader.xp)};
 }
+export async function reviewFile(admin:User,id:string,kind:'exam'|'marking_scheme'){authorize(admin,{roles:['admin']});const p=await db.paper.findUnique({where:{id},include:{examFile:true,markingSchemeFile:true}});if(!p)fail(404,'NOT_FOUND','Paper not found');const f=kind==='exam'?p.examFile:p.markingSchemeFile;if(!f || f.scanStatus!=='CLEAN')fail(409,'FILE_NOT_READY','File must pass scanning before review');return {url:await storage.download(f.bucketName,f.objectKey,'Review.pdf',120),expiresAt:new Date(Date.now()+120000).toISOString(),filename:'Review.pdf'};}
 export async function adminPapers(admin:User,q:z.infer<typeof moderationSchemas.adminPapers>){authorize(admin,{roles:['admin']});const id=cursorId(q.cursor);return page(await db.paper.findMany({where:{status:q.status,moduleId:q.moduleId,module:{programId:q.programId,program:{departmentId:q.departmentId}}},include:paperInclude,orderBy:{id:'desc'},take:q.limit+1,...(id?{cursor:{id},skip:1}:{})}),q.limit,p=>({...paperDto(p),status:p.status.toLowerCase(),rejectionReason:p.rejectionReason,duplicateWarning:p.duplicateWarning,scanStatus:p.examFile.scanStatus.toLowerCase()}));}
 export async function adminPaper(admin:User,id:string){authorize(admin,{roles:['admin']});const p=await db.paper.findUnique({where:{id},include:paperInclude});if(!p)fail(404,'NOT_FOUND','Paper not found');return {...paperDto(p),status:p.status.toLowerCase(),duplicateWarning:p.duplicateWarning,rejectionReason:p.rejectionReason,uploads:{exam:{id:p.examFile.id,scanStatus:p.examFile.scanStatus.toLowerCase()},markingScheme:p.markingSchemeFile?{id:p.markingSchemeFile.id,scanStatus:p.markingSchemeFile.scanStatus.toLowerCase()}:null},reviews:(await db.paperReview.findMany({where:{paperId:id},orderBy:{createdAt:'desc'},take:100})).map(r=>({id:r.id,action:r.action,reason:r.reason,createdAt:r.createdAt.toISOString()}))};}
 export async function flag(input:z.infer<typeof moderationSchemas.flags>,user?:User){if(user)authorize(user,{});await verifyTurnstile(input.turnstileToken);return withTransactionRetry(async tx=>{if(!await tx.paper.findFirst({where:{id:input.paperId,...publicPaper}}))fail(404,'NOT_FOUND','Paper not found');const r=await tx.flaggedReport.create({data:{paperId:input.paperId,reason:input.reason,details:input.details,reportedByUserId:user?.id}});return {id:r.id,status:r.status};});}

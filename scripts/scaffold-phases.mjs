@@ -14,6 +14,8 @@ export function endpoint(path, methods, imports) {
   const rest=code.replace(full,'');const used=names.split(',').map(n=>n.trim()).filter(n=>new RegExp('\\b'+n.split(' as ').at(-1)+'\\b').test(rest));return used.length?'import { '+used.join(', ')+' } from '+source+';':'';
  });
  code=code.replace(/import \{ ([^}]+) \} from ([^;]+);/g,(full,names,source)=>{const rest=code.replace(full,'');const used=names.split(',').map(n=>n.trim()).filter(n=>new RegExp('\\b'+n.split(' as ').at(-1)+'\\b').test(rest));return used.length?'import { '+used.join(', ')+' } from '+source+';':'';});
+ const executable=code.replace(/^import .*$/gm,'');
+ code=code.replace(/import \{ ([^}]+) \} from ([^;]+);/g,(_,names,source)=>{const used=names.split(',').map(n=>n.trim()).filter(n=>new RegExp('\\b'+n.split(' as ').at(-1)+'\\b').test(executable));return used.length?'import { '+used.join(', ')+' } from '+source+';':'';});
  writeFileSync(dir+'/route.ts',code);
 }
 const imports="import { catalogSchemas as schemas, empty } from '@/modules/catalog/schemas';\nimport * as service from '@/modules/catalog/service';";
@@ -33,6 +35,7 @@ const moderation="import { moderationSchemas as schemas } from '@/modules/modera
 endpoint('admin/papers',[['GET','schemas.adminPapers','service.adminPapers(identity!.user,data)',true]],moderation);
 endpoint('admin/papers/[id]',[['GET','empty','service.adminPaper(identity!.user,id)',true]],moderation);
 endpoint('admin/papers/[id]/review',[['PATCH','schemas.review','service.review(identity!.user,id,data)',true]],moderation);
+endpoint('admin/papers/[id]/download-url',[['POST','uploadSchemas.download','service.reviewFile(identity!.user,id,data.kind)',true]],moderation+"\nimport { uploadSchemas } from '@/modules/uploads/schemas';");
 for(const [path,schema,fn] of [['flags','flags','flag'],['takedowns','takedowns','takedown'],['module-requests','moduleRequests','moduleRequest']])endpoint(path,[['POST',`schemas.${schema}`,`service.${fn}(data,identity?.user)`,'optional']],moderation);
 for(const [kind,schema,fn] of [['flags','resolveFlag','resolveFlag'],['takedowns','resolveTakedown','resolveTakedown'],['module-requests','resolveModule','resolveModule']]){
  endpoint('admin/'+kind,[['GET','schemas.queue',`service.queue(identity!.user,'${kind}',data)`,true]],moderation);

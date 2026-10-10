@@ -4,6 +4,7 @@ import { db } from '../../lib/db';
 import { fail } from '../../lib/errors';
 import { catalogSchemas, PaperQuery, uuid } from './schemas';
 import { z } from 'zod';
+import { levelTitleForXp } from '../../lib/levels';
 import { departmentDto, programDto, moduleDto, paperDto, paperInclude } from './dto';
 export const activeDepartment = { isActive:true, deletedAt:null };
 export const activeProgram = { isActive:true, deletedAt:null, department:activeDepartment };
@@ -24,7 +25,8 @@ export async function departments(q:z.infer<typeof catalogSchemas.departments>) 
 export async function programs(q:z.infer<typeof catalogSchemas.programs>) { return page(await db.program.findMany({where:{...activeProgram,departmentId:q.departmentId,level:q.level},orderBy:{id:'asc'},take:q.limit+1,...seek(q.cursor)}),q.limit,programDto); }
 export async function modules(q:z.infer<typeof catalogSchemas.modules>) { return page(await db.module.findMany({where:{...activeModule,programId:q.programId,semester:q.semester,program:{...activeProgram,departmentId:q.departmentId}},orderBy:{id:'asc'},take:q.limit+1,...seek(q.cursor)}),q.limit,moduleDto); }
 export async function department(id:string) { const d=await db.department.findFirst({where:{id,...activeDepartment}}); if(!d) fail(404,'NOT_FOUND','Department not found'); return departmentDto(d); }
-export async function program(id:string) { const p=await db.program.findFirst({where:{id,...activeProgram}}); if(!p) fail(404,'NOT_FOUND','Program not found'); return programDto(p); }
+export async function program(id:string) { const p=await db.program.findFirst({where:{id,...activeProgram}}); if(!p) fail(404,'NOT_FOUND','Program not found'); return {...programDto(p),modules:await modules(catalogSchemas.modules.parse({programId:id}))}; }
+export async function publicProfile(username:string){const registry=await db.usernameRegistry.findUnique({where:{usernameNormalized:username.toLowerCase()},include:{relatedUserId:true}});const user=registry?.relatedUserId;if(!user || user.deletedAt || user.status!=='ACTIVE')fail(404,'NOT_FOUND','User not found');return {username:user.username,bio:user.bio,avatarId:user.avatarId,levelTitle:levelTitleForXp(user.xp),isLecturerVerified:!!user.lecturerVerifiedAt,joinedAt:user.joinedAt.toISOString()};}
 export async function moduleDetail(codeOrId:string) {
     const m=await db.module.findFirst({where:{...activeModule,...(uuid.safeParse(codeOrId).success?{id:codeOrId}:{codeNormalized:codeOrId.toLowerCase()})}});
     if(!m) fail(404,'NOT_FOUND','Module not found');

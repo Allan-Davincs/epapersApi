@@ -10,6 +10,7 @@ import { cachedDownload } from '../../lib/download-cache';
 import { authorize } from '../auth/service';
 import { activeModule,publicPaper,page,cursorId } from '../catalog/service';
 import { uploadSchemas } from './schemas';
+import { levelTitleForXp } from '../../lib/levels';
 function uploader(user:User){authorize(user,{roles:['contributor','lecturer'],requireVerifiedEmail:true});}
 export function validPdfEdges(first:Buffer,last:Buffer){return /^[\t\n\r ]{0,8}%PDF-(1\.[0-7]|2\.0)(?:\s|$)/.test(first.toString('latin1')) && /%%EOF[\t\n\r ]*$/.test(last.toString('latin1'));}
 async function currentUploader(tx:TransactionClient,id:string){await tx.$queryRaw`SELECT id FROM users WHERE id=${id}::UUID FOR UPDATE`;const u=await tx.user.findUnique({where:{id}});if(!u)fail(401,'UNAUTHORIZED','Authentication required');uploader(u);const lockdown=await tx.appSetting.findUnique({where:{key:'lockdown'}});if(lockdown?.value===true)fail(403,'LOCKDOWN','Uploads are temporarily disabled');return u;}
@@ -53,7 +54,7 @@ export async function createPaper(user:User,input:z.infer<typeof uploadSchemas.c
   const auto=current.role==='LECTURER' && !!current.lecturerVerifiedAt && current.homeDepartmentId===m.program.departmentId;
   const p=await tx.paper.create({data:{moduleId:m.id,uploadedByUserId:current.id,title:input.title,category:input.category,academicYearStart:input.academicYear,semester:input.semester,examPeriod:input.examPeriod,examFileId:input.examUploadId,markingSchemeFileId:input.markingSchemeUploadId,status:auto?'APPROVED':'PENDING',duplicateWarning}});
   if(auto)await tx.job.create({data:{type:'finalize_approval',payload:{paperId:p.id}}});
-  return {id:p.id,status:p.status.toLowerCase(),duplicateWarning};
+  return {id:p.id,status:p.status.toLowerCase(),duplicateWarning,levelTitle:levelTitleForXp(current.xp)};
  });
 }
 export async function download(id:string,kind:'exam'|'marking_scheme',hash:string){
@@ -66,4 +67,4 @@ export async function download(id:string,kind:'exam'|'marking_scheme',hash:strin
  return {...url,filename};
 }
 export async function view(id:string,hash:string){await withTransactionRetry(async tx=>{if(!await tx.paper.findFirst({where:{id,...publicPaper}}))fail(404,'NOT_FOUND','Paper not found');if(!await tx.paperViewEvent.findFirst({where:{paperId:id,ipHash:hash,createdAt:{gte:new Date(Date.now()-60000)}}}))await tx.paperViewEvent.create({data:{paperId:id,ipHash:hash}});});return {message:'View recorded'};}
-export async function myPapers(user:User,q:{cursor?:string,limit:number}){authorize(user,{});const id=cursorId(q.cursor);return page(await db.paper.findMany({where:{uploadedByUserId:user.id},orderBy:{id:'desc'},take:q.limit+1,...(id?{cursor:{id},skip:1}:{})}),q.limit,p=>({id:p.id,title:p.title,status:p.status.toLowerCase(),rejectionReason:p.rejectionReason,duplicateWarning:p.duplicateWarning,createdAt:p.createdAt.toISOString()}));}
+export async function myPapers(user:User,q:{cursor?:string,limit:number}){authorize(user,{});const id=cursorId(q.cursor);return page(await db.paper.findMany({where:{uploadedByUserId:user.id},orderBy:{id:'desc'},take:q.limit+1,...(id?{cursor:{id},skip:1}:{})}),q.limit,p=>({id:p.id,title:p.title,status:p.status.toLowerCase(),rejectionReason:p.rejectionReason,duplicateWarning:p.duplicateWarning,levelTitle:levelTitleForXp(user.xp),createdAt:p.createdAt.toISOString()}));}

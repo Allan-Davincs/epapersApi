@@ -8,9 +8,10 @@ import { scanFile,deleteFile,rollupEvents,cleanAbandoned } from './files';
 import { finalizeApproval,reviewEffects } from './moderation';
 import { storage } from '../src/lib/storage';
 import { z } from 'zod';
+import { verifyXpLedger } from './maintenance';
 const types=['email_otp','email','email_notice','scan_file','delete_file','delete_object','finalize_approval','review_effects'];
 const payloadSchema=z.object({fileId:z.string().uuid().optional(),paperId:z.string().uuid().optional(),reviewId:z.string().uuid().optional(),bucket:z.string().optional(),key:z.string().optional(),encrypted:z.string().optional()});
-let stopping=false,lastMaintenance=0,lastCleanup=0;
+let stopping=false,lastMaintenance=0,lastCleanup=0,lastXpDay='';
 process.on('SIGTERM',()=>{stopping=true;});process.on('SIGINT',()=>{stopping=true;});
 export async function tick(){
  const token=randomUUID();
@@ -46,6 +47,7 @@ async function run(){
    await rollupEvents();lastMaintenance=Date.now();
   }
   if(Date.now()-lastCleanup>3600000){await cleanAbandoned();lastCleanup=Date.now();}
+  const day=new Date().toISOString().slice(0,10);if(day!==lastXpDay){await verifyXpLedger();lastXpDay=day;}
   await tick();await new Promise(resolve=>setTimeout(resolve,1000));
  }
  await db.$disconnect();

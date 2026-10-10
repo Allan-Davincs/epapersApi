@@ -10,5 +10,5 @@ export const storage={
  async stream(bucket:string,key:string){const r=await client.send(new GetObjectCommand({Bucket:bucket,Key:key}));if(!r.Body)throw new Error('Missing object');return r.Body as AsyncIterable<Uint8Array>;},
  async copy(sourceBucket:string,sourceKey:string,bucket:string,key:string){await client.send(new CopyObjectCommand({Bucket:bucket,Key:key,CopySource:sourceBucket+'/'+sourceKey.split('/').map(encodeURIComponent).join('/')}));},
  async delete(bucket:string,key:string){await client.send(new DeleteObjectCommand({Bucket:bucket,Key:key}));},
- async download(bucket:string,key:string,filename:string){return getSignedUrl(client,new GetObjectCommand({Bucket:bucket,Key:key,ResponseContentDisposition:`attachment; filename="${filename}"`,ResponseContentType:'application/pdf'}),{expiresIn:600});},
+ async download(bucket:string,key:string,filename:string,expiresIn=600){return getSignedUrl(client,new GetObjectCommand({Bucket:bucket,Key:key,ResponseContentDisposition:`attachment; filename="${filename}"`,ResponseContentType:'application/pdf'}),{expiresIn});},
 };
