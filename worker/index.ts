@@ -9,6 +9,7 @@ import { finalizeApproval, reviewEffects } from './moderation';
 import { storage } from '../src/lib/storage';
 import { z } from 'zod';
 import { verifyXpLedger } from './maintenance';
+import { purgeExpiredPapers,expireSecurityRecords } from './retention';
 const types = ['email_otp', 'email', 'email_notice', 'scan_file', 'delete_file', 'delete_object', 'finalize_approval', 'review_effects'];
 const payloadSchema = z.object({ fileId: z.string().uuid().optional(), paperId: z.string().uuid().optional(), reviewId: z.string().uuid().optional(), bucket: z.string().optional(), key: z.string().optional(), encrypted: z.string().optional() });
 let stopping = false, lastMaintenance = 0, lastCleanup = 0, lastXpDay = '';
@@ -73,6 +74,8 @@ async function run() {
         }
         if (Date.now() - lastCleanup > 3600000) {
             await cleanAbandoned();
+            await expireSecurityRecords();
+            try { await purgeExpiredPapers(); } catch { logger.error('Retention cleanup failed; retrying on next maintenance cycle'); }
             lastCleanup = Date.now();
         }
         const day = new Date().toISOString().slice(0, 10);

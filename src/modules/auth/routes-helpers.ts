@@ -9,6 +9,7 @@ import { logger } from '../../lib/logger';
 import { rateLimit } from '../../lib/rate-limit';
 import { ipHash } from '../../lib/crypto';
 import { authenticate, authorize } from './service';
+import { enforceWritePolicy } from '../../lib/write-policy';
 type Identity = Awaited<ReturnType<typeof authenticate>>;
 export function withAuth(options: {
     roles?: string[];
@@ -65,6 +66,7 @@ export function route<T>(name: string, schema: z.ZodType<T>, action: (data: T, r
             await rateLimit('ip:' + name + ':' + ipHash(req.headers.get('cf-connecting-ip') || 'local'), name === 'login' ? 20 : 60, 900);
             const identity = typeof auth === 'object' ? await withAuth(auth)(req) : auth === true || (auth === 'optional' && req.headers.has('authorization')) ? await withAuth()(req) : undefined;
             if (identity && req.method !== 'GET') await rateLimit('account:' + name + ':' + identity.user.id, 60, 900);
+            await enforceWritePolicy(name,req.method);
             let raw: unknown;
             if (req.method === 'GET') {
                 const params=new URL(req.url).searchParams;
