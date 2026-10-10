@@ -168,7 +168,7 @@
       "level": "BACHELOR",
       "awardTitle": "B.Eng",
       "campus": "MAIN",
-      "assignmentNeedsVerification": true
+      "assignmentNeedsVerification": false
     },
     {
       "departmentCode": "D04",
@@ -177,7 +177,7 @@
       "level": "BACHELOR",
       "awardTitle": "B.Eng",
       "campus": "MAIN",
-      "assignmentNeedsVerification": false
+      "assignmentNeedsVerification": true
     },
     {
       "departmentCode": "D05",
@@ -204,7 +204,7 @@
       "level": "BACHELOR",
       "awardTitle": "B.Eng",
       "campus": "MAIN",
-      "assignmentNeedsVerification": true
+      "assignmentNeedsVerification": false
     },
     {
       "departmentCode": "D05",
@@ -222,7 +222,7 @@
       "level": "BACHELOR",
       "awardTitle": "B.Eng",
       "campus": "MAIN",
-      "assignmentNeedsVerification": false
+      "assignmentNeedsVerification": true
     },
     {
       "departmentCode": "D06",

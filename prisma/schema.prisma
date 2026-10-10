@@ -246,6 +246,8 @@ model AppSetting {
   key String @id
   value Json
   @@map("app_settings")
+  updatedByUserId String? @map("updated_by_user_id") @db.Uuid
+  updatedAt DateTime @default(now()) @map("updated_at") @db.Timestamptz
 }
 
 model AuditLog {
@@ -258,4 +260,170 @@ model AuditLog {
   metadata Json @default("{}")
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
   @@map("audit_logs")
+  targetDescription String @default("") @map("target_description")
+}
+
+model XpLedger {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId String @map("user_id") @db.Uuid
+  amount Int @db.Int4
+  eventType String @map("event_type")
+  reason String @default("")
+  title String @default("")
+  paperId String? @map("paper_id") @db.Uuid
+  note String @default("")
+  status String @default("applied")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  @@map("xp_ledger")
+}
+
+model PaperDownloadEvent {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  paperId String @map("paper_id") @db.Uuid
+  ipHash String? @map("ip_hash")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  @@map("paper_download_events")
+}
+
+model PaperViewEvent {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  paperId String @map("paper_id") @db.Uuid
+  ipHash String? @map("ip_hash")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  @@map("paper_view_events")
+}
+
+model Notification {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId String @map("user_id") @db.Uuid
+  title String
+  type String
+  message String
+  link String?
+  readAt DateTime? @map("read_at") @db.Timestamptz
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  @@map("notifications")
+}
+
+model Announcement {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  title String
+  content String
+  type String @default("info")
+  isActive Boolean @default(true) @map("is_active")
+  startsAt DateTime @default(now()) @map("starts_at") @db.Timestamptz
+  endsAt DateTime? @map("ends_at") @db.Timestamptz
+  createdByUserId String? @map("created_by_user_id") @db.Uuid
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz
+  deletedById String? @map("deleted_by_user_id") @db.Uuid
+  @@map("announcements")
+}
+
+model ModuleRequest {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  requestedByUserId String? @map("requested_by_user_id") @db.Uuid
+  programId String @map("program_id") @db.Uuid
+  moduleCode String @map("module_code")
+  moduleName String @map("module_name")
+  academicYearStart Int @map("academic_year_start") @db.Int2
+  description String
+  semester Int @db.Int2
+  status String @default("pending")
+  reviewedByUserId String? @map("reviewed_by_user_id") @db.Uuid
+  reviewedAt DateTime? @map("reviewed_at") @db.Timestamptz
+  reviewNote String? @map("review_note")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  deletedAt DateTime? @map("deleted_at") @db.Timestamptz
+  deletedById String? @map("deleted_by_user_id") @db.Uuid
+  @@map("module_requests")
+}
+
+model PaperReview {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  paperId String @map("paper_id") @db.Uuid
+  reviewerUserId String @map("reviewer_user_id") @db.Uuid
+  action String
+  reason String @default("")
+  correctedTitle String? @map("corrected_title")
+  correctedModuleCode String? @map("corrected_module_code")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  @@map("paper_reviews")
+}
+
+model FlaggedReport {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  paperId String @map("paper_id") @db.Uuid
+  reportedByUserId String? @map("reported_by_user_id") @db.Uuid
+  reason String
+  details String
+  status String @default("pending")
+  resolvedByUserId String? @map("resolved_by_user_id") @db.Uuid
+  resolvedAt DateTime? @map("resolved_at") @db.Timestamptz
+  resolutionNote String? @map("resolution_note")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  @@map("flagged_reports")
+}
+
+model TakedownRequest {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  paperId String @map("paper_id") @db.Uuid
+  requesterUserId String? @map("requester_user_id") @db.Uuid
+  requesterFullName String @map("requester_full_name")
+  requesterEmail String @map("requester_email")
+  affiliation String
+  reason String
+  evidence String @default("")
+  status String @default("pending")
+  reviewedByUserId String? @map("reviewed_by_user_id") @db.Uuid
+  reviewedAt DateTime? @map("reviewed_at") @db.Timestamptz
+  reviewNote String? @map("review_note")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  @@map("takedown_requests")
+}
+
+model AchievementDefinition {
+  id String @id
+  title String
+  description String
+  category String
+  xpReward Int @default(0) @map("xp_reward")
+  iconName String @default("Award") @map("icon_name")
+  maxProgress Int @default(1) @map("max_progress")
+  isActive Boolean @default(true) @map("is_active")
+  @@map("achievement_definitions")
+}
+
+model UserAchievement {
+  userId String @map("user_id") @db.Uuid
+  achievementId String @map("achievement_id")
+  progress Int @default(0)
+  unlockedAt DateTime? @map("unlocked_at") @db.Timestamptz
+  @@id([userId, achievementId])
+  @@map("user_achievements")
+}
+
+model ContactMessage {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  senderUserId String? @map("sender_user_id") @db.Uuid
+  senderName String @map("sender_name")
+  senderEmail String @map("sender_email")
+  subject String
+  message String
+  status String @default("new")
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  @@map("contact_messages")
+}
+
+model RateLimitCounter {
+  key String @id
+  hits Int @default(1) @db.Int4
+  expiresAt DateTime @map("expires_at") @db.Timestamptz
+  @@map("rate_limit_counters")
+}
+
+model EmailDailyCounter {
+  day DateTime @id @db.Date
+  sent Int @default(0) @db.Int4
+  @@map("email_daily_counters")
 }
