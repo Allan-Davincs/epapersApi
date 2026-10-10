@@ -1,0 +1,218 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "cockroachdb"
+  url      = env("DATABASE_URL")
+}
+
+enum AccountRole {
+  CONTRIBUTOR
+  LECTURER
+  ADMIN
+}
+
+enum AccountStatus {
+  ACTIVE
+  SUSPENDED
+  BANNED
+}
+
+enum ProgramLevel {
+  ORDINARY_DIPLOMA
+  BACHELOR
+}
+
+enum Campus {
+  MAIN
+  MWANZA
+  SONGWE
+}
+
+enum PaperCategory {
+  TEST
+  UE
+  SUPP
+}
+
+enum PaperStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SPAM
+}
+
+enum ScanStatus {
+  PENDING
+  CLEAN
+  REJECTED
+}
+
+model Department {
+  id            String    @id @default(uuid()) @db.Uuid
+  code          String
+  codeNormalized String   @map("code_normalized")
+  name          String
+  description   String    @default("")
+  icon          String    @default("Building2")
+  isActive      Boolean   @default(true) @map("is_active")
+  deletedAt     DateTime? @map("deleted_at") @db.Timestamptz
+  deletedById   String?   @map("deleted_by_user_id") @db.Uuid
+  createdAt     DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt     DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+  programs      Program[]
+  users         User[]
+  @@map("departments")
+}
+
+model Program {
+  id             String       @id @default(uuid()) @db.Uuid
+  departmentId   String       @map("department_id") @db.Uuid
+  code           String
+  codeNormalized String       @map("code_normalized")
+  name           String
+  level          ProgramLevel
+  awardTitle     String       @map("award_title")
+  campus         Campus       @default(MAIN)
+  isActive       Boolean      @default(true) @map("is_active")
+  deletedAt      DateTime?    @map("deleted_at") @db.Timestamptz
+  deletedById    String?      @map("deleted_by_user_id") @db.Uuid
+  createdAt      DateTime     @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt      DateTime     @updatedAt @map("updated_at") @db.Timestamptz
+  department     Department   @relation(fields: [departmentId], references: [id], onDelete: Restrict)
+  modules        Module[]
+  @@index([departmentId, isActive])
+  @@map("programs")
+}
+
+model Module {
+  id             String    @id @default(uuid()) @db.Uuid
+  programId      String    @map("program_id") @db.Uuid
+  code           String
+  codeNormalized String    @map("code_normalized")
+  name           String
+  nameNormalized String    @map("name_normalized")
+  semester       Int       @db.SmallInt
+  levelYear      Int?      @map("level_year") @db.SmallInt
+  credits        Decimal?  @db.Decimal(5, 2)
+  isActive       Boolean   @default(true) @map("is_active")
+  deletedAt      DateTime? @map("deleted_at") @db.Timestamptz
+  deletedById    String?   @map("deleted_by_user_id") @db.Uuid
+  createdAt      DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt      DateTime  @updatedAt @map("updated_at") @db.Timestamptz
+  program        Program   @relation(fields: [programId], references: [id], onDelete: Restrict)
+  papers         Paper[]
+  @@index([programId, semester, isActive])
+  @@index([codeNormalized])
+  @@index([nameNormalized])
+  @@map("modules")
+}
+
+model User {
+  id                  String        @id @default(uuid()) @db.Uuid
+  username            String
+  usernameNormalized String        @unique @map("username_normalized")
+  email               String
+  emailNormalized    String        @unique @map("email_normalized")
+  fullName            String        @map("full_name")
+  passwordHash        String        @map("password_hash")
+  role                AccountRole   @default(CONTRIBUTOR)
+  status              AccountStatus @default(ACTIVE)
+  emailVerifiedAt     DateTime?     @map("email_verified_at") @db.Timestamptz
+  lecturerVerifiedAt  DateTime?     @map("lecturer_verified_at") @db.Timestamptz
+  homeDepartmentId    String?       @map("home_department_id") @db.Uuid
+  bio                 String        @default("") @db.VarChar(1000)
+  avatarId            String?       @map("avatar_id") @db.VarChar(32)
+  xp                  Int           @default(0)
+  allTimeXp           Int           @default(0) @map("all_time_xp")
+  usernameChangedAt   DateTime?     @map("username_changed_at") @db.Timestamptz
+  deletedAt           DateTime?     @map("deleted_at") @db.Timestamptz
+  deletedById         String?       @map("deleted_by_user_id") @db.Uuid
+  joinedAt            DateTime      @default(now()) @map("joined_at") @db.Timestamptz
+  updatedAt           DateTime      @updatedAt @map("updated_at") @db.Timestamptz
+  homeDepartment      Department?   @relation(fields: [homeDepartmentId], references: [id], onDelete: SetNull)
+  papers              Paper[]
+  sessions            UserSession[]
+  @@index([role, status])
+  @@index([homeDepartmentId])
+  @@map("users")
+}
+
+model UserSession {
+  id               String    @id @default(uuid()) @db.Uuid
+  userId           String    @map("user_id") @db.Uuid
+  refreshTokenHash String    @unique @map("refresh_token_hash")
+  userAgent        String?   @map("user_agent")
+  ipHash           String?   @map("ip_hash")
+  createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  expiresAt        DateTime  @map("expires_at") @db.Timestamptz
+  revokedAt        DateTime? @map("revoked_at") @db.Timestamptz
+  user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  @@index([userId, expiresAt])
+  @@map("user_sessions")
+}
+
+model StoredFile {
+  id               String     @id @default(uuid()) @db.Uuid
+  ownerUserId      String?    @map("owner_user_id") @db.Uuid
+  bucketName       String     @map("bucket_name")
+  objectKey        String     @unique @map("object_key")
+  originalFilename String    @map("original_filename")
+  contentType      String     @map("content_type")
+  sizeBytes        BigInt     @map("size_bytes")
+  sha256Hex        String?    @map("sha256_hex") @db.Char(64)
+  scanStatus       ScanStatus @default(PENDING) @map("scan_status")
+  scannedAt        DateTime?  @map("scanned_at") @db.Timestamptz
+  createdAt        DateTime   @default(now()) @map("created_at") @db.Timestamptz
+  examPaper        Paper?     @relation("ExamFile")
+  markingPapers    Paper[]    @relation("MarkingFile")
+  @@index([sha256Hex])
+  @@map("stored_files")
+}
+
+model Paper {
+  id                   String        @id @default(uuid()) @db.Uuid
+  moduleId             String        @map("module_id") @db.Uuid
+  uploadedByUserId     String        @map("uploaded_by_user_id") @db.Uuid
+  title                String
+  category             PaperCategory
+  academicYearStart    Int           @map("academic_year_start") @db.SmallInt
+  semester             Int           @db.SmallInt
+  examPeriod           String        @default("") @map("exam_period")
+  examFileId           String        @unique @map("exam_file_id") @db.Uuid
+  markingSchemeFileId  String?       @unique @map("marking_scheme_file_id") @db.Uuid
+  status               PaperStatus   @default(PENDING)
+  duplicateWarning     Boolean       @default(false) @map("duplicate_warning")
+  pageCount            Int?          @map("page_count")
+  rejectionReason      String?       @map("rejection_reason")
+  reviewedByUserId     String?       @map("reviewed_by_user_id") @db.Uuid
+  reviewedAt           DateTime?     @map("reviewed_at") @db.Timestamptz
+  viewsCount           BigInt        @default(0) @map("views_count")
+  downloadsCount       BigInt        @default(0) @map("downloads_count")
+  deletedAt            DateTime?     @map("deleted_at") @db.Timestamptz
+  deletedById          String?       @map("deleted_by_user_id") @db.Uuid
+  createdAt            DateTime      @default(now()) @map("created_at") @db.Timestamptz
+  updatedAt            DateTime      @updatedAt @map("updated_at") @db.Timestamptz
+  module               Module        @relation(fields: [moduleId], references: [id], onDelete: Restrict)
+  uploader             User          @relation(fields: [uploadedByUserId], references: [id], onDelete: Restrict)
+  examFile             StoredFile    @relation("ExamFile", fields: [examFileId], references: [id], onDelete: Restrict)
+  markingSchemeFile    StoredFile?   @relation("MarkingFile", fields: [markingSchemeFileId], references: [id], onDelete: Restrict)
+  @@index([moduleId, category, academicYearStart, semester, status])
+  @@index([status, createdAt])
+  @@index([uploadedByUserId, createdAt])
+  @@map("papers")
+}
+
+model Job {
+  id        String    @id @default(uuid()) @db.Uuid
+  type      String
+  payload   Json
+  status    String    @default("pending")
+  runAt     DateTime  @default(now()) @map("run_at") @db.Timestamptz
+  attempts  Int       @default(0)
+  lastError String?   @map("last_error")
+  createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz
+  @@index([status, runAt])
+  @@map("jobs")
+}

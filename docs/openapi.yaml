@@ -1,0 +1,28 @@
+openapi: 3.1.0
+info:
+  title: EPapers API
+  version: 1.0.0
+  description: DIT examination paper repository API.
+servers:
+  - url: /api/v1
+paths:
+  /health:
+    get:
+      summary: Check API and CockroachDB availability
+      operationId: getHealth
+      responses:
+        '200':
+          description: API and database are available
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  data:
+                    type: object
+                    properties:
+                      status: { type: string, const: ok }
+                      database: { type: string, const: ok }
+                      timestamp: { type: string, format: date-time }
+        '503':
+          description: A required dependency is unavailable
