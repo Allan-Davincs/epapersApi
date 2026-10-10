@@ -25,6 +25,9 @@ async function main() {
         if (fixture.modules !== 200 || fixture.papers !== 3000)
             throw new Error('Unexpected fixture size');
         const plans = {
+            runtimeSearch: await db.$queryRaw `EXPLAIN ANALYZE SELECT p.id FROM papers p JOIN modules m ON m.id=p.module_id JOIN programs g ON g.id=m.program_id JOIN departments d ON d.id=g.department_id WHERE p.status='APPROVED' AND p.deleted_at IS NULL AND m.is_active AND m.deleted_at IS NULL AND g.is_active AND g.deleted_at IS NULL AND d.is_active AND d.deleted_at IS NULL AND (p.title ILIKE '%Index Fixture%' OR m.code_normalized LIKE 'index fixture%' OR m.name_normalized LIKE 'index fixture%') ORDER BY p.created_at DESC,p.id DESC LIMIT 25`,
+            retention: await db.$queryRaw `EXPLAIN SELECT id FROM papers WHERE deleted_at < now()-INTERVAL '90 days' ORDER BY deleted_at ASC LIMIT 20`,
+
             modulesRuntime: await db.$queryRaw `EXPLAIN ANALYZE SELECT id FROM modules WHERE program_id=(SELECT program_id FROM modules WHERE code_normalized='plan1' AND deleted_at IS NULL LIMIT 1) AND semester=1 AND is_active AND deleted_at IS NULL`,
             modules: await db.$queryRaw `EXPLAIN SELECT id FROM modules WHERE program_id=${program.id}::UUID AND semester=1 AND is_active AND deleted_at IS NULL`,
             recent: await db.$queryRaw `EXPLAIN ANALYZE SELECT id FROM papers WHERE status='APPROVED' AND deleted_at IS NULL ORDER BY created_at DESC LIMIT 25`,
