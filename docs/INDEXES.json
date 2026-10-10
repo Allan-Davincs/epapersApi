@@ -21,7 +21,7 @@
         "info": "└── • scan"
       },
       {
-        "info": "      estimated row count: 1 (100% of the table; stats collected 2 minutes ago; using stats forecast for 13 seconds in the future)"
+        "info": "      estimated row count: 100 (50% of the table; stats collected 2 minutes ago)"
       },
       {
         "info": "      table: modules@modules_program_semester_active_idx (partial index)"
@@ -47,7 +47,7 @@
         "info": "└── • scan"
       },
       {
-        "info": "      estimated row count: 1 (100% of the table; stats collected 2 minutes ago; using stats forecast for 30 seconds in the future)"
+        "info": "      estimated row count: 25 (0.83% of the table; stats collected 2 minutes ago)"
       },
       {
         "info": "      table: papers@papers_public_recent_idx (partial index)"
@@ -76,7 +76,7 @@
         "info": "└── • scan"
       },
       {
-        "info": "      estimated row count: 1 (100% of the table; stats collected 2 minutes ago; using stats forecast for 30 seconds in the future)"
+        "info": "      estimated row count: 25 (0.83% of the table; stats collected 2 minutes ago)"
       },
       {
         "info": "      table: papers@papers_public_popular_idx (partial index)"
@@ -99,37 +99,25 @@
         "info": "• filter"
       },
       {
-        "info": "│ estimated row count: 1"
+        "info": "│ estimated row count: 111"
       },
       {
-        "info": "│ filter: (name_normalized >= 'plan module 1') AND (name_normalized < e'plan module 1\\U0000FFFF')"
+        "info": "│ filter: ((name_normalized >= 'plan module 1') AND (name_normalized < e'plan module 1\\U0000FFFF')) AND (deleted_at IS NULL)"
       },
       {
         "info": "│"
       },
       {
-        "info": "└── • index join"
+        "info": "└── • scan"
       },
       {
-        "info": "    │ estimated row count: 1"
+        "info": "      estimated row count: 200 (100% of the table; stats collected 2 minutes ago)"
       },
       {
-        "info": "    │ table: modules@modules_pkey"
+        "info": "      table: modules@modules_pkey"
       },
       {
-        "info": "    │"
-      },
-      {
-        "info": "    └── • scan"
-      },
-      {
-        "info": "          estimated row count: 1 (100% of the table; stats collected 2 minutes ago; using stats forecast for 13 seconds in the future)"
-      },
-      {
-        "info": "          table: modules@modules_code_live_key (partial index)"
-      },
-      {
-        "info": "          spans: FULL SCAN"
+        "info": "      spans: FULL SCAN"
       },
       {
         "info": ""
@@ -179,7 +167,7 @@
         "info": "    └── • scan"
       },
       {
-        "info": "          estimated row count: 1 (100% of the table; stats collected 3 minutes ago; using stats forecast for 1 minute in the future)"
+        "info": "          estimated row count: 1 (100% of the table; stats collected 6 minutes ago; using stats forecast for 2 minutes ago)"
       },
       {
         "info": "          table: users@users_email_normalized_key"
