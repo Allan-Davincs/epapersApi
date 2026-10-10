@@ -5,7 +5,7 @@ const listener=createServer();await new Promise(resolve=>listener.listen(0,'127.
 const child=spawn(process.execPath,['.next/standalone/server.js'],{env:{...process.env,NODE_ENV:'production',HOSTNAME:'127.0.0.1',PORT:String(port)},stdio:'ignore'});
 const root=`http://127.0.0.1:${port}/api/v1`,results=[];
 try{
- let ready=false;for(let i=0;i<60;i++){if(child.exitCode!==null)break;try{const res=await fetch(root+'/health',{signal:AbortSignal.timeout(3000)});if(res.ok){ready=true;break;}}catch{}await new Promise(resolve=>setTimeout(resolve,500));}
+ let ready=false;for(let i=0;i<60;i++){if(child.exitCode!==null)break;try{const res=await fetch(root+'/health',{signal:AbortSignal.timeout(3000)});if(res.ok){ready=true;break;}}catch{/* Retry while the standalone process starts. */}await new Promise(resolve=>setTimeout(resolve,500));}
  if(!ready)throw new Error('Standalone did not become healthy');
  for(const [path,expected] of [['/health',200],['/departments',200],['/settings/public',200],['/announcements/active',200],['/admin/users',401],['/lecturer/verifications',405],['/auth/me',401],['/leaderboard',401],['/modules?limit=1&limit=2',422]]){
   const res=await fetch(root+path,{headers:{Origin:process.env.APP_ORIGIN},signal:AbortSignal.timeout(10000)});const body=await res.json().catch(()=>null);
