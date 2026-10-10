@@ -2,6 +2,7 @@ import { writeFileSync } from 'node:fs';
 import { z } from 'zod';
 import { schemas, responseSchemas } from '../src/modules/auth/schemas';
 import { addPhasePaths } from './phase-openapi';
+import { addAdminPaths } from './admin-openapi';
 const definitions:Record<string,unknown> = Object.fromEntries(Object.entries(schemas).map(([key, schema]) => ['auth_' + key, z.toJSONSchema(schema, { io: 'input' })]));
 const mapping: Record<string, [
     string,
@@ -47,4 +48,5 @@ for (const [path, item] of Object.entries(paths)) {
     }
 }
 addPhasePaths(paths,definitions);
+addAdminPaths(paths,definitions);
 writeFileSync('docs/openapi.yaml', JSON.stringify({ openapi: '3.1.0', info: { title: 'EPapers API', version: '1.0.0' }, servers: [{ url: '/api/v1' }], paths, components: { securitySchemes: { bearerAuth: { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, refreshCookie: {type:'apiKey',in:'cookie',name:'epapers_refresh'} }, schemas: definitions } }, null, 2) + '\n');

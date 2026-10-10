@@ -10,6 +10,7 @@ import { privateUser } from '../auth/dto';
 import { fail } from '../../lib/errors';
 import { verifyPassword } from '../../lib/crypto';
 export const exportSchema = z.strictObject({ limit: pagination.limit, paperCursor: pagination.cursor, notificationCursor: pagination.cursor });
+export const deleteAccountSchema = z.strictObject({password:z.string().min(1).max(128)});
 export async function exportAccount(user: User, q: z.infer<typeof exportSchema> = { limit: 25 }) {
     authorize(user, {});
     const u = await db.user.findUnique({ where: { id: user.id } });

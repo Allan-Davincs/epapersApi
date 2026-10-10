@@ -13,7 +13,7 @@ const receipt = z.strictObject({ id: uuid, status: z.string() });
 const flags = z.strictObject({ id: uuid, paperId: uuid, reason: z.string(), details: z.string(), status: z.string(), resolutionNote: z.string().nullable(), createdAt: time });
 const takedowns = z.strictObject({ id: uuid, paperId: uuid, requesterFullName: z.string(), requesterEmail: z.string(), affiliation: z.string(), reason: z.string(), evidence: z.string(), status: z.string(), reviewNote: z.string().nullable(), createdAt: time });
 const moduleRequests = z.strictObject({ id: uuid, programId: uuid, moduleCode: z.string(), moduleName: z.string(), academicYear: z.number().int(), semester: z.number().int(), description: z.string(), status: z.string(), reviewNote: z.string().nullable(), createdAt: time });
-const responseSchemas = {
+export const responseSchemas = {
     department, program, module, paper, departmentPage: page(department), programPage: page(program), modulePage: page(module), paperPage: page(paper),
     programDetail: program.extend({ modules: page(module) }), moduleDetail: module.extend({ papers: page(paper) }),
     publicProfile: z.strictObject({ username: z.string(), bio: z.string(), avatarId: z.string().nullable(), levelTitle: z.string(), isLecturerVerified: z.boolean(), joinedAt: time }),
