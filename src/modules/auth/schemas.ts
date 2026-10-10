@@ -16,3 +16,7 @@ export const schemas={
  empty:z.strictObject({}),
  session:z.strictObject({id:z.uuid()})
 };
+
+export const privateProfileSchema=z.strictObject({id:z.uuid(),username:z.string(),email:z.email(),fullName:z.string(),bio:z.string(),avatarId:z.string().nullable(),role:z.enum(['contributor','lecturer','admin']),emailVerified:z.boolean(),levelTitle:z.string(),joinedAt:z.iso.datetime()});
+export const sessionSchema=z.strictObject({id:z.uuid(),createdAt:z.iso.datetime(),expiresAt:z.iso.datetime()});
+export const responseSchemas={profile:privateProfileSchema,sessionList:z.array(sessionSchema),tokens:z.strictObject({accessToken:z.string(),user:privateProfileSchema}),message:z.strictObject({message:z.string()}),availability:z.strictObject({available:z.boolean()}),error:z.strictObject({error:z.strictObject({code:z.string(),message:z.string(),fields:z.array(z.strictObject({path:z.string(),message:z.string()})).optional()})})};

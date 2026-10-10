@@ -1,6 +1,7 @@
 import { PrismaClient } from '@prisma/client';
 import { writeFileSync } from 'node:fs';
 const db=new PrismaClient();
+async function main() {
 try {
  if(!process.env.TEST_DATABASE_URL || !new URL(process.env.DATABASE_URL!).pathname.includes('test')) throw new Error('Index verification requires an isolated test database');
  const program=await db.program.findFirstOrThrow();
@@ -28,3 +29,6 @@ try {
  writeFileSync('docs/INDEXES.json',JSON.stringify({fixture:{modules:200,papers:3000},plans},null,2)+'\n');
  console.info('Index plans written to docs/INDEXES.json (200 modules, 3000 papers).');
 } finally {await db.$disconnect();}
+
+}
+main().catch(error=>{console.error('Index verification failed:',error.code || error.name);process.exitCode=1;});

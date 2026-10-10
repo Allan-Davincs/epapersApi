@@ -36,22 +36,73 @@
         ],
         "responses": {
           "200": {
-            "description": "Success (data envelope)"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/message"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           },
           "401": {
-            "description": "Authentication required"
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           },
           "403": {
-            "description": "Forbidden or invalid origin"
+            "description": "Forbidden or invalid origin",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           },
           "409": {
-            "description": "Conflict"
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           },
           "422": {
-            "description": "Invalid request"
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           },
           "429": {
-            "description": "Rate limited"
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           }
         }
       }
@@ -82,22 +133,73 @@
         ],
         "responses": {
           "200": {
-            "description": "Success (data envelope)"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/tokens"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           },
           "401": {
-            "description": "Authentication required"
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           },
           "403": {
-            "description": "Forbidden or invalid origin"
+            "description": "Forbidden or invalid origin",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           },
           "409": {
-            "description": "Conflict"
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           },
           "422": {
-            "description": "Invalid request"
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           },
           "429": {
-            "description": "Rate limited"
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           }
         }
       }
@@ -128,22 +230,73 @@
         ],
         "responses": {
           "200": {
-            "description": "Success (data envelope)"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/tokens"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           },
           "401": {
-            "description": "Authentication required"
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           },
           "403": {
-            "description": "Forbidden or invalid origin"
+            "description": "Forbidden or invalid origin",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           },
           "409": {
-            "description": "Conflict"
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           },
           "422": {
-            "description": "Invalid request"
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           },
           "429": {
-            "description": "Rate limited"
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           }
         }
       }
@@ -174,22 +327,73 @@
         ],
         "responses": {
           "200": {
-            "description": "Success (data envelope)"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/message"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           },
           "401": {
-            "description": "Authentication required"
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           },
           "403": {
-            "description": "Forbidden or invalid origin"
+            "description": "Forbidden or invalid origin",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           },
           "409": {
-            "description": "Conflict"
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           },
           "422": {
-            "description": "Invalid request"
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           },
           "429": {
-            "description": "Rate limited"
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           }
         }
       }
@@ -220,22 +424,73 @@
         ],
         "responses": {
           "200": {
-            "description": "Success (data envelope)"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/message"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           },
           "401": {
-            "description": "Authentication required"
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           },
           "403": {
-            "description": "Forbidden or invalid origin"
+            "description": "Forbidden or invalid origin",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           },
           "409": {
-            "description": "Conflict"
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           },
           "422": {
-            "description": "Invalid request"
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           },
           "429": {
-            "description": "Rate limited"
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           }
         }
       }
@@ -266,22 +521,73 @@
         ],
         "responses": {
           "200": {
-            "description": "Success (data envelope)"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/message"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           },
           "401": {
-            "description": "Authentication required"
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           },
           "403": {
-            "description": "Forbidden or invalid origin"
+            "description": "Forbidden or invalid origin",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           },
           "409": {
-            "description": "Conflict"
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           },
           "422": {
-            "description": "Invalid request"
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           },
           "429": {
-            "description": "Rate limited"
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           }
         }
       }
@@ -312,22 +618,73 @@
         ],
         "responses": {
           "200": {
-            "description": "Success (data envelope)"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/message"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           },
           "401": {
-            "description": "Authentication required"
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           },
           "403": {
-            "description": "Forbidden or invalid origin"
+            "description": "Forbidden or invalid origin",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           },
           "409": {
-            "description": "Conflict"
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           },
           "422": {
-            "description": "Invalid request"
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           },
           "429": {
-            "description": "Rate limited"
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           }
         }
       }
@@ -358,22 +715,73 @@
         ],
         "responses": {
           "200": {
-            "description": "Success (data envelope)"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/tokens"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           },
           "401": {
-            "description": "Authentication required"
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           },
           "403": {
-            "description": "Forbidden or invalid origin"
+            "description": "Forbidden or invalid origin",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           },
           "409": {
-            "description": "Conflict"
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           },
           "422": {
-            "description": "Invalid request"
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           },
           "429": {
-            "description": "Rate limited"
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           }
         }
       }
@@ -404,22 +812,73 @@
         ],
         "responses": {
           "200": {
-            "description": "Success (data envelope)"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/message"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           },
           "401": {
-            "description": "Authentication required"
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           },
           "403": {
-            "description": "Forbidden or invalid origin"
+            "description": "Forbidden or invalid origin",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           },
           "409": {
-            "description": "Conflict"
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           },
           "422": {
-            "description": "Invalid request"
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           },
           "429": {
-            "description": "Rate limited"
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           }
         }
       }
@@ -454,22 +913,73 @@
         ],
         "responses": {
           "200": {
-            "description": "Success (data envelope)"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/message"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           },
           "401": {
-            "description": "Authentication required"
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           },
           "403": {
-            "description": "Forbidden or invalid origin"
+            "description": "Forbidden or invalid origin",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           },
           "409": {
-            "description": "Conflict"
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           },
           "422": {
-            "description": "Invalid request"
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           },
           "429": {
-            "description": "Rate limited"
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           }
         }
       }
@@ -484,22 +994,73 @@
         "parameters": [],
         "responses": {
           "200": {
-            "description": "Success (data envelope)"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/profile"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           },
           "401": {
-            "description": "Authentication required"
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           },
           "403": {
-            "description": "Forbidden or invalid origin"
+            "description": "Forbidden or invalid origin",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           },
           "409": {
-            "description": "Conflict"
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           },
           "422": {
-            "description": "Invalid request"
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           },
           "429": {
-            "description": "Rate limited"
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           }
         }
       }
@@ -521,22 +1082,73 @@
         ],
         "responses": {
           "200": {
-            "description": "Success (data envelope)"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/availability"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           },
           "401": {
-            "description": "Authentication required"
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           },
           "403": {
-            "description": "Forbidden or invalid origin"
+            "description": "Forbidden or invalid origin",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           },
           "409": {
-            "description": "Conflict"
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           },
           "422": {
-            "description": "Invalid request"
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           },
           "429": {
-            "description": "Rate limited"
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           }
         }
       }
@@ -560,12 +1172,46 @@
         },
         "responses": {
           "200": {
-            "description": "Private profile, levelTitle only"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/profile"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           },
           "409": {
-            "description": "Username unavailable or cooldown"
+            "description": "Username unavailable or cooldown",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           }
-        }
+        },
+        "parameters": [
+          {
+            "name": "X-EPapers-Client",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "web"
+            }
+          }
+        ]
       }
     },
     "/users/me/sessions": {
@@ -577,7 +1223,23 @@
         ],
         "responses": {
           "200": {
-            "description": "Active sessions without credentials"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/sessionList"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           }
         }
       }
@@ -598,14 +1260,46 @@
               "type": "string",
               "format": "uuid"
             }
+          },
+          {
+            "name": "X-EPapers-Client",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "web"
+            }
           }
         ],
         "responses": {
           "200": {
-            "description": "Session family revoked"
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/message"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
           },
           "404": {
-            "description": "Session not found"
+            "description": "Session not found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
           }
         }
       }
@@ -812,48 +1506,75 @@
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "type": "object",
         "properties": {
-          "username": {
+          "id": {
             "type": "string",
-            "minLength": 3,
-            "maxLength": 30,
-            "pattern": "^[a-zA-Z0-9_]+$"
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+          },
+          "username": {
+            "type": "string"
+          },
+          "email": {
+            "type": "string",
+            "format": "email",
+            "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
           },
           "fullName": {
-            "type": "string",
-            "minLength": 2,
-            "maxLength": 160
+            "type": "string"
           },
           "bio": {
-            "type": "string",
-            "maxLength": 1000
+            "type": "string"
           },
           "avatarId": {
-            "anyOf": [
-              {
-                "type": "string",
-                "pattern": "^[a-z0-9_-]{1,32}$"
-              },
-              {
-                "type": "null"
-              }
+            "type": [
+              "string",
+              "null"
             ]
+          },
+          "role": {
+            "type": "string",
+            "enum": [
+              "contributor",
+              "lecturer",
+              "admin"
+            ]
+          },
+          "emailVerified": {
+            "type": "boolean"
+          },
+          "levelTitle": {
+            "type": "string"
+          },
+          "joinedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
           }
         },
+        "required": [
+          "id",
+          "username",
+          "email",
+          "fullName",
+          "bio",
+          "avatarId",
+          "role",
+          "emailVerified",
+          "levelTitle",
+          "joinedAt"
+        ],
         "additionalProperties": false
       },
       "availability": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "type": "object",
         "properties": {
-          "username": {
-            "type": "string",
-            "minLength": 3,
-            "maxLength": 30,
-            "pattern": "^[a-zA-Z0-9_]+$"
+          "available": {
+            "type": "boolean"
           }
         },
         "required": [
-          "username"
+          "available"
         ],
         "additionalProperties": false
       },
@@ -875,6 +1596,170 @@
         },
         "required": [
           "id"
+        ],
+        "additionalProperties": false
+      },
+      "sessionList": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "array",
+        "items": {
+          "type": "object",
+          "properties": {
+            "id": {
+              "type": "string",
+              "format": "uuid",
+              "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+            },
+            "createdAt": {
+              "type": "string",
+              "format": "date-time",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+            },
+            "expiresAt": {
+              "type": "string",
+              "format": "date-time",
+              "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+            }
+          },
+          "required": [
+            "id",
+            "createdAt",
+            "expiresAt"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "tokens": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "accessToken": {
+            "type": "string"
+          },
+          "user": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              "username": {
+                "type": "string"
+              },
+              "email": {
+                "type": "string",
+                "format": "email",
+                "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+              },
+              "fullName": {
+                "type": "string"
+              },
+              "bio": {
+                "type": "string"
+              },
+              "avatarId": {
+                "type": [
+                  "string",
+                  "null"
+                ]
+              },
+              "role": {
+                "type": "string",
+                "enum": [
+                  "contributor",
+                  "lecturer",
+                  "admin"
+                ]
+              },
+              "emailVerified": {
+                "type": "boolean"
+              },
+              "levelTitle": {
+                "type": "string"
+              },
+              "joinedAt": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+              }
+            },
+            "required": [
+              "id",
+              "username",
+              "email",
+              "fullName",
+              "bio",
+              "avatarId",
+              "role",
+              "emailVerified",
+              "levelTitle",
+              "joinedAt"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "accessToken",
+          "user"
+        ],
+        "additionalProperties": false
+      },
+      "message": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "message"
+        ],
+        "additionalProperties": false
+      },
+      "error": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "error": {
+            "type": "object",
+            "properties": {
+              "code": {
+                "type": "string"
+              },
+              "message": {
+                "type": "string"
+              },
+              "fields": {
+                "type": "array",
+                "items": {
+                  "type": "object",
+                  "properties": {
+                    "path": {
+                      "type": "string"
+                    },
+                    "message": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "path",
+                    "message"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            },
+            "required": [
+              "code",
+              "message"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "required": [
+          "error"
         ],
         "additionalProperties": false
       }
