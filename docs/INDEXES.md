@@ -1,0 +1,9 @@
+# Index and load verification
+
+`npm run test:db` prepares an isolated 200-module/3,000-paper metadata fixture and captures EXPLAIN/EXPLAIN ANALYZE in `INDEXES.json`. `npm run test:indexes` deploys pending test migrations and refreshes plans separately. These commands require a database name containing test. Fixture files are metadata only and are not published PDFs.
+
+Observed plans use partial indexes for active module selection, live module code uniqueness, public recent/popular papers and expired soft-delete retention; module-name prefix and account email lookup use their intended indexes. The runtime search plan includes actual active department/program/module joins and the title substring OR code/name prefix predicate. With the broad `Index Fixture` search, it scans the recent partial index with a soft limit and filters the joined rows. A title substring is not backed by a full-text/trigram index. Existing index evidence does not imply every search is an indexed seek.
+
+`LOAD-RESULTS.json` records 80 service calls with concurrency four, 40 searches and 40 downloads. This run had zero errors, reused the warmed signed URL for all 40 downloads and recorded 41 events including warmup. It uses real CockroachDB over the development network, a separate synthetic published file row and local S3 URL signing; no R2 object is uploaded/fetched. Synthetic load rows/events are removed afterward. The p95 search/download latency reflects this environment and is not a production SLO.
+
+At larger volumes, measure selective/empty/worst-case title searches, deep cursors, mixed tenant/curriculum filters, download event writes and actual browser/edge behavior from the VPS region. Set SLOs based on those results. Any new search strategy must remain CockroachDB-compatible, preserve active ancestor/approval/privacy checks and justify its indexes with real plans; PostgreSQL extensions are not available.

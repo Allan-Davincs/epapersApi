@@ -35,6 +35,7 @@ async function main() {
             search: await db.$queryRaw `EXPLAIN ANALYZE SELECT id FROM modules WHERE name_normalized >= 'plan module 199' AND name_normalized < 'plan module 199\uffff' AND deleted_at IS NULL`,
             auth: await db.$queryRaw `EXPLAIN ANALYZE SELECT id FROM users WHERE email_normalized='index_fixture@example.com' AND deleted_at IS NULL`
         };
+        for(const [query,index] of Object.entries({recent:'papers_public_recent_idx',popular:'papers_public_popular_idx',modules:'modules_program_semester_active_idx',search:'modules_name_normalized_idx',auth:'users_email_normalized_key',retention:'papers_retention_idx'})){if(!JSON.stringify(plans[query as keyof typeof plans]).includes(index))throw new Error('Expected query index absent');}
         writeFileSync('docs/INDEXES.json', JSON.stringify({ fixture, plans }, null, 2) + '\n');
         console.info('Index plans written to docs/INDEXES.json (200 modules, 3000 papers).');
     }

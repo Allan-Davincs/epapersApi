@@ -12,7 +12,7 @@ import { purgeExpiredPapers } from '../worker/retention';
 import type { User } from '@prisma/client';
 const enabled = process.env.EPAPERS_DB_TESTS_ENABLED === 'true';
 const prefix = 'p678_' + randomUUID().replaceAll('-', '').slice(0, 10), raw = withDeleted();
-const ids: string[] = [], papers: string[] = [], fileIds: string[] = [], departmentIds: string[] = [], programIds: string[] = [], moduleIds: string[] = [];
+const ids: string[] = [], papers: string[] = [], fileIds: string[] = [], departmentIds: string[] = [], programIds: string[] = [], moduleIds: string[] = [], announcementIds: string[] = [];
 let admin: User, contributor: User, lecturer: User, sessionId: string, token: string;
 const proof = () => ({ token, sessionId });
 const password = 'A distinctive integration password 678!';
@@ -42,6 +42,7 @@ afterAll(async () => {
             await tx.lecturerVerification.deleteMany({ where: { userId: { in: ids } } });
             await tx.notification.deleteMany({ where: { userId: { in: ids } } });
             await tx.userSession.deleteMany({ where: { userId: { in: ids } } });
+            await tx.announcement.deleteMany({where:{id:{in:announcementIds}}});
             await tx.paperReview.deleteMany({ where: { paperId: { in: papers } } });
             await tx.paperDownloadEvent.deleteMany({ where: { paperId: { in: papers } } });
             await tx.paperViewEvent.deleteMany({ where: { paperId: { in: papers } } });
@@ -60,6 +61,12 @@ afterAll(async () => {
     await raw.$disconnect();
 }, 60000);
 describe.skipIf(!enabled)('Phases 6–8 real CockroachDB administration and retention', () => {
+    it('publishes announcements only within their window and preserves absent patch values',async()=>{
+        const visible=await adminService.saveAnnouncement(admin,adminSchemas.announcement.parse({title:'Visible '+prefix,content:'Campus notice',startsAt:new Date(Date.now()-60000).toISOString(),reason:'test'}));announcementIds.push(visible.id);
+        const expired=await adminService.saveAnnouncement(admin,adminSchemas.announcement.parse({title:'Expired '+prefix,content:'Old notice',startsAt:new Date(Date.now()-120000).toISOString(),endsAt:new Date(Date.now()-60000).toISOString(),reason:'test'}));announcementIds.push(expired.id);
+        const updated=await adminService.saveAnnouncement(admin,adminSchemas.announcementPatch.parse({title:'Renamed '+prefix,reason:'test'}),expired.id);expect(updated.endsAt).toBe(expired.endsAt);expect(updated.startsAt).toBe(expired.startsAt);
+        const publicRows=await adminService.activeAnnouncements({limit:100});expect(publicRows.items.some(a=>a.id===visible.id)).toBe(true);expect(publicRows.items.some(a=>a.id===expired.id)).toBe(false);
+    },60000);
     it('rejects non-admin access and missing or mismatched reauthentication', async () => {
         await expect(adminService.users(contributor, adminSchemas.list.parse({}))).rejects.toThrow();
         const input = adminSchemas.user.parse({ grantXp: { amount: 10, requestId: randomUUID() }, reason: 'test' });
