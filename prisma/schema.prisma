@@ -230,6 +230,9 @@ model StoredFile {
   sha256Hex        String?    @map("sha256_hex") @db.Char(64)
   scanStatus       ScanStatus @default(PENDING) @map("scan_status")
   scannedAt        DateTime?  @map("scanned_at") @db.Timestamptz
+  completedAt      DateTime?  @map("completed_at") @db.Timestamptz
+  publishedAt      DateTime?  @map("published_at") @db.Timestamptz
+  pageCount        Int?       @map("page_count")
   createdAt        DateTime   @default(now()) @map("created_at") @db.Timestamptz
   examPaper        Paper?     @relation("ExamFile")
   markingPapers    Paper[]    @relation("MarkingFile")
@@ -296,6 +299,7 @@ model Job {
   runAt     DateTime  @default(now()) @map("run_at") @db.Timestamptz
   attempts  Int       @default(0)
   lastError String?   @map("last_error")
+  leaseToken String? @map("lease_token") @db.Uuid
   createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz
   @@index([status, runAt])
   @@map("jobs")
@@ -369,6 +373,7 @@ model XpLedger {
   paperId String? @map("paper_id") @db.Uuid
   note String @default("")
   status String @default("applied")
+  rewardKey String? @unique @map("reward_key")
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
   @@map("xp_ledger")
   @@index([userId, createdAt(sort: Desc)])
@@ -384,6 +389,7 @@ model PaperDownloadEvent {
   id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   paperId String @map("paper_id") @db.Uuid
   ipHash String? @map("ip_hash")
+  processedAt DateTime? @map("processed_at") @db.Timestamptz
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
   @@map("paper_download_events")
   @@index([paperId, createdAt(sort: Desc)])
@@ -396,6 +402,7 @@ model PaperViewEvent {
   id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   paperId String @map("paper_id") @db.Uuid
   ipHash String? @map("ip_hash")
+  processedAt DateTime? @map("processed_at") @db.Timestamptz
   createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
   @@map("paper_view_events")
   @@index([paperId, createdAt(sort: Desc)])

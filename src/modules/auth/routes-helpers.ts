@@ -37,9 +37,9 @@ export function withAuth(options: {
         return identity;
     };
 }
-export function cors(req: NextRequest, response: NextResponse) {
+export function cors(req: NextRequest, response: NextResponse, publicCache = false) {
     securityHeaders(response.headers);
-    response.headers.set('Cache-Control', 'no-store');
+    response.headers.set('Cache-Control', publicCache && response.ok ? 'public, max-age=60, s-maxage=300' : 'no-store');
     response.headers.set('Vary', 'Origin');
     if (req.headers.get('origin') === env.APP_ORIGIN) {
         response.headers.set('Access-Control-Allow-Origin', env.APP_ORIGIN);
@@ -53,7 +53,7 @@ export function preflight(req: NextRequest) {
     response.headers.set('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-EPapers-Client,X-EPapers-Reauth');
     return response;
 }
-export function route<T>(name: string, schema: z.ZodType<T>, action: (data: T, req: NextRequest, identity?: Identity) => Promise<unknown>, auth = false) {
+export function route<T>(name: string, schema: z.ZodType<T>, action: (data: T, req: NextRequest, identity?: Identity) => Promise<unknown>, auth = false, publicCache = false) {
     return async (req: NextRequest) => {
         const started = Date.now();
         const requestId = crypto.randomUUID();
@@ -64,6 +64,7 @@ export function route<T>(name: string, schema: z.ZodType<T>, action: (data: T, r
             // Trust only the header overwritten by Cloudflare; restrict VPS ingress to Cloudflare in production.
             await rateLimit('ip:' + name + ':' + ipHash(req.headers.get('cf-connecting-ip') || 'local'), name === 'login' ? 20 : 60, 900);
             const identity = auth ? await withAuth()(req) : undefined;
+            if (identity && req.method !== 'GET') await rateLimit('account:' + name + ':' + identity.user.id, 60, 900);
             let raw: unknown;
             if (req.method === 'GET')
                 raw = Object.fromEntries(new URL(req.url).searchParams);
@@ -112,7 +113,7 @@ export function route<T>(name: string, schema: z.ZodType<T>, action: (data: T, r
         }
         logger.info({ requestId, method: req.method, route: name, status: response.status, duration: Date.now() - started }, 'Request completed');
         response.headers.set('X-Request-ID', requestId);
-        return cors(req, response);
+        return cors(req, response, publicCache && req.method === 'GET' && !auth);
     };
 }
 export function sessionResponse(result: {
