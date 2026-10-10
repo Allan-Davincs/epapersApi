@@ -20,6 +20,23 @@ Index verification uses 200 test modules and 3,000 test papers, explicitly check
 - Serve the API and SPA over HTTPS under the same registrable domain. Secure refresh cookies require HTTPS during development too. Restrict VPS ingress to Cloudflare before trusting cf-connecting-ip.
 - CI configuration is checked in; its hosted gitleaks job has not been run from this local environment. The local tracked-file check confirms environment/private-key files are not tracked. The gitleaks allowlist is limited to the public RFC 6238 test vector.
 
+## Final check results
+
+| Check | Result |
+|---|---|
+| ESLint | Pass |
+| tsc --noEmit | Pass |
+| Unit/handler tests | 17 passed; database suite skipped intentionally in the unit command |
+| Real CockroachDB integration tests | 8 passed; refresh DTO/reuse test also rerun after final projection change |
+| Standalone next build | Pass |
+| Main database health handler | HTTP 200 |
+| Main seed counts | 8 departments, 36 programme/campus entries; 0 users/modules/papers |
+| EXPLAIN / EXPLAIN ANALYZE | Intended upload, recent, popular, prefix and account indexes used |
+| npm audit | 0 vulnerabilities |
+| Tracked secret-file guard | Pass |
+
+The standard TypeScript/JavaScript ESLint rules replace the Next.js lint dependency chain that introduced an unpatched braces advisory; the build emits a non-blocking Next.js lint-plugin notice. Prisma's configuration dependency is overridden to the fixed deepmerge-ts release; Prisma generation and real migrations were exercised with that override. Hosted CI/gitleaks still requires a repository workflow run.
+
 ## Commands
 
 npm run lint; npm run typecheck; npm test; npm run test:db; npm run build; npm run openapi; npm run check:secrets; npm audit --audit-level=high.

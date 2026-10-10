@@ -8,3 +8,5 @@ Only cf-connecting-ip is trusted for IP limits. Restrict direct VPS access and h
 Endpoints: POST /auth/register, /auth/verify-otp, /auth/resend-otp, /auth/login, /auth/admin/login, /auth/refresh, /auth/logout, /auth/forgot-password, /auth/reset-password; GET /auth/me, /auth/sessions, /auth/username-availability?username=; DELETE /auth/sessions/{id}; PATCH /users/me.
 
 POST /auth/reauth requires an authenticated admin and password + TOTP. It returns a five-minute reauthToken with a separate JWT audience. Future sensitive admin handlers must use withAuth({roles:['admin'],requireReauth:true}) and X-EPapers-Reauth. Reauth tokens are bound to the current live session and cannot serve as access tokens.
+
+The SPA must coordinate refresh requests so only one runs at a time; simultaneous reuse intentionally revokes the session family. Login and refresh return explicit session DTOs internally as well as explicit JSON projections.
