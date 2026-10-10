@@ -13,12 +13,15 @@ Strict TypeScript API for DIT using Next.js App Router, Prisma and CockroachDB. 
 ## Verification
 
 - `npm run lint`, `npm run typecheck`, `npm test`.
-- Set `TEST_DATABASE_URL` in `.env` to a disposable CockroachDB database whose name contains `test`, then run `npm run test:db`. This applies migrations, seeds curriculum, runs auth and Phase 3–5 integration tests, and prints index plans. It never runs against `DATABASE_URL`. Storage integration tests use an isolated in-memory adapter and never send email.
+- Set `TEST_DATABASE_URL` in `.env` to a disposable CockroachDB database whose name contains `test`, then run `npm run test:db`. This applies migrations, seeds curriculum, runs auth and Phase 3–8 integration tests, and verifies index plans. It never runs against `DATABASE_URL`. Storage integration tests use an isolated adapter and never send email.
+- `npm run test:load`, `npm run test:restore`, `npm run test:indexes` and `npm run test:admin` run scoped disposable-database checks. After building, `npm run test:smoke` starts/stops a local standalone process against the configured application database for public/denied-route checks.
 - `npm run build` validates the standalone deployment build.
 - `npm run openapi` regenerates `docs/openapi.yaml` directly from request Zod schemas (JSON is valid YAML).
 
-The versioned curriculum seed includes only departments/programs, no modules, users, passwords, Masters or vocational certificates. Programme assignments flagged in `prisma/seed/curriculum-v1.json` require prospectus verification before production. Module CSV contract: `code,name,programCode,semester,levelYear,credits`; dry-run and commit endpoints are planned for Phase 6.
+The versioned curriculum seed includes only departments/programs, no modules, users, passwords, Masters or vocational certificates. Programme assignments flagged in `prisma/seed/curriculum-v1.json` require prospectus verification before production. Module CSV contract: `code,name,programCode,semester,levelYear,credits`; `/api/v1/admin/modules/import` supports dry-run and atomic commit.
 
 See [auth contract](docs/AUTH.md) and [phase verification](docs/PHASES.md). Production email/Turnstile delivery needs configured service credentials. `DATA_ENCRYPTION_KEY` encrypts email outbox and admin TOTP secrets; back it up securely and keep it separate from JWT and refresh secrets.
 
 Phases 3–5 add curriculum/search, private PDF uploads, signed downloads, moderation, achievements, notifications, authenticated leaderboards and reporting queues. See [uploads and moderation](docs/UPLOADS-MODERATION.md) for request examples, worker behavior and remaining live service setup.
+
+Phases 6–8 add [guarded administration and retention](docs/ADMIN.md), [security checks](docs/SECURITY.md), [deployment templates](docs/DEPLOY.md), [load/index evidence](docs/INDEXES.md), [backup/restore notes](docs/BACKUP-RESTORE.md) and a complete [frontend integration mapping](docs/FRONTEND-INTEGRATION.md). The [manual checklist](docs/MANUAL.md) identifies live service and operator checks still pending. OpenAPI covers every implemented route; no frontend files were changed.

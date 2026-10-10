@@ -75,3 +75,45 @@ Migration 0005 adds completion/publication/page-count fields, job lease tokens a
 The integration suite uses real CockroachDB with isolated mocked storage and Turnstile, and never sends email. It verifies ownership/idempotent completion, unsafe scans, duplicate warnings, department scope, private DTOs, concurrent approval reward uniqueness, publication, concurrent rollup uniqueness, takedowns without XP reversal, notification ownership, module requests, leaderboard exclusions and abandoned upload cleanup. Query plans are refreshed against the retained 200-module/3,000-paper fixture.
 
 Both live R2 bucket probes failed with the current local settings; the user elected to configure R2 later. Live browser PUT/CORS, R2 copy/download, SMTP/Resend delivery and real Turnstile challenges therefore remain unverified. The structural scanner is a safety hook, not antivirus; see [uploads and moderation](UPLOADS-MODERATION.md) for setup, examples, scan limitations and signed URL expiry behavior. Broader admin CRUD/restore/purge is Phase 6; load testing and deployment hardening are Phase 7.
+
+## Phase 6: administration
+
+Implemented admin user list/detail/status/role/department/lecturer verification and positive idempotent XP grants; evidence-based lecturer verification queue; curriculum CRUD/archive and bounded CSV dry-run/atomic commit; paper soft-delete/restore with retention expiry; settings/lockdown/read-only/banner; timed announcements; security policy, append-only audit view, stats and contact inbox. Sensitive writes recheck current database account/session and session-bound reauthentication inside transactions. Role/status/verification changes revoke sessions; self-lockout and negative/zero awards are rejected. PATCH preserves omitted fields, including defaults.
+
+Account export returns safe independently paged private lists. Account deletion anonymizes identity and linked data while preserving positive awards, retained papers and audit integrity. Hourly maintenance expires sessions/challenges, clears terminal email payloads after seven days and retries object purge. Purge marks its start before deleting objects, blocks restoration once started, and preserves positive ledger amounts with a null paper link. An operator-only first-admin bootstrap script requires a verified active account, password and working TOTP and refuses when an admin exists; it was type/lint checked but not run to provision an account.
+
+Migration 0006 adds lecturer verification, purge state and maintenance settings; 0007 adds the partial retention-selection index. Both were applied successfully to the disposable test and application databases. Details and examples are in [ADMIN.md](ADMIN.md).
+
+## Phase 7: hardening
+
+Added guest/contributor/lecturer/admin authorization and reauth-session matrix tests, disabled/deleted-account denial, strict patch/CSV/positive award tests, nested credential/URL/log redaction, read-only recovery checks and real CockroachDB admin/retention/account/announcement regressions. The full database run passed 23 tests; the final seven-test admin suite added the announcement regression and passed independently, giving 24 distinct database tests across the suites. A first teardown missed lecturer notifications; teardown was fixed, the full suite reran successfully and the abandoned synthetic fixtures were removed from the test database.
+
+The repeatable load check ran 40 searches and 40 downloads with concurrency four over 200 module/3,000 paper fixtures: zero errors, 40 cached URL reuses and 41 download events including warmup. Search p95 was 2,543 ms; download p95 1,615 ms, over the development-to-CockroachDB network. This is service-level load with local S3 signing, not HTTP/Cloudflare/R2 transfer capacity. EXPLAIN verified recent/popular/module/prefix/account/retention indexes and recorded the broad runtime search's recent-index scan/filter limitation. See [load results](LOAD-RESULTS.json), [plans](INDEXES.json) and [interpretation](INDEXES.md).
+
+The synthetic logical restore drill verified a three-row curriculum serialization/checksum and relational insert round-trip, then removed its fixture. It does not prove a native database backup, private-object recovery or RPO/RTO. [Backup/restore notes](BACKUP-RESTORE.md) make those pending operator checks explicit. Added [DEPLOY.md](DEPLOY.md), [SECURITY.md](SECURITY.md) and reviewable Nginx/systemd/R2 CORS templates; no host or Cloudflare configuration was installed.
+
+## Phase 8: handover
+
+Generated request/response OpenAPI now covers 83 paths and 96 operations, including admin/verification/settings/announcements/contact/account flows. Contract tests verify every implemented method, Node.js runtime declarations, schema references, admin bearer access and sensitive reauth headers. [FRONTEND-INTEGRATION.md](FRONTEND-INTEGRATION.md) maps every mock service function and documents DTO/filter/pagination/auth/upload adaptations; the frontend remains unchanged. [MANUAL.md](MANUAL.md) lists live services, native recovery, VPS setup, TOTP enrollment, scanner, curriculum verification and browser integration still requiring operator work.
+
+Phase branches were created in order: `backend/phase-6-admin`, `backend/phase-7-hardening`, `backend/phase-8-handover`. No dependencies, seed passwords or frontend edits were introduced. Credentials remain local and untracked.
+
+### Phase 6–8 final verification
+
+| Check | Result |
+|---|---|
+| ESLint | Pass, no warnings |
+| tsc --noEmit | Pass |
+| Unit/handler/contract tests | 44 passed; 24 database tests intentionally skipped in ordinary unit command |
+| Real CockroachDB | 24 distinct tests passed across full and final focused runs |
+| Migrations 0006/0007 | Applied on test and application databases |
+| Standalone build | Pass |
+| Built process smoke checks | 10 passed; main database health, public DTOs, private denial, duplicate queries, CSRF |
+| Generated OpenAPI coverage | 83 paths / 96 operations; route/reference checks pass |
+| Service load | 80 calls, zero errors, cache/event correctness verified |
+| EXPLAIN | Intended indexes present; broad-search scan explicitly recorded |
+| Synthetic logical restore | Pass; native recovery remains manual |
+| npm audit | 0 vulnerabilities |
+| Tracked secret-file guard | Pass |
+
+Nonblocking tooling notices remain: Prisma's package.json config deprecation, Vitest config-loader notice and Next.js ESLint-plugin notice. Hosted CI/gitleaks has not been run by this session. Live R2, SMTP/Resend, Turnstile, VPS installation, full native backup/object restore and production HTTP capacity remain unverified; these are documented external checks rather than claimed successful deployment.
