@@ -3,7 +3,7 @@ import { PrismaClient } from '@prisma/client';
 import { randomUUID } from 'node:crypto';
 import { hashPassword,tokenHash } from '../src/lib/crypto';
 import { login,refresh,authenticate,verifyOtp,resetPassword,updateProfile } from '../src/modules/auth/service';
-const enabled=!!process.env.TEST_DATABASE_URL;
+const enabled=process.env.EPAPERS_DB_TESTS_ENABLED==='true';
 const db=new PrismaClient();
 const created:string[]=[];
 async function user() {const suffix=randomUUID().replaceAll('-','').slice(0,12);const u=await db.user.create({data:{username:'test_'+suffix,usernameNormalized:'test_'+suffix,email:suffix+'@example.com',emailNormalized:suffix+'@example.com',fullName:'Test User',passwordHash:await hashPassword('Unique test password for EPapers')}}); created.push(u.id);await db.$executeRaw`INSERT INTO username_registry(username_normalized,user_id) VALUES (${u.usernameNormalized},${u.id}::UUID)`;return u;}

@@ -19,5 +19,5 @@ export const db = raw.$extends({ query: { $allModels: { async $allOperations({ m
 /** Restricted escape hatch for admin restore/purge only. */
 export function withDeleted() { return raw; }
 export async function withTransactionRetry<T>(operation: (tx: Prisma.TransactionClient) => Promise<T>): Promise<T> {
-  return withRetry(() => raw.$transaction(operation, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }));
+  return withRetry(() => db.$transaction(operation, { isolationLevel: Prisma.TransactionIsolationLevel.Serializable }));
 }
