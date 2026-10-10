@@ -4,16 +4,18 @@ import { z } from 'zod';
 import { env } from '../../lib/env';
 import { ApiError, fail } from '../../lib/errors';
 import { securityHeaders } from '../../lib/http';
+import { verifyReauthentication } from '../../lib/jwt';
 import { logger } from '../../lib/logger';
 import { rateLimit } from '../../lib/rate-limit';
 import { ipHash } from '../../lib/crypto';
 import { authenticate,authorize } from './service';
 type Identity=Awaited<ReturnType<typeof authenticate>>;
-export function withAuth(options:{roles?:string[];requireVerifiedEmail?:boolean;scope?:{departmentId:string}}={}) {
+export function withAuth(options:{roles?:string[];requireVerifiedEmail?:boolean;scope?:{departmentId:string};requireReauth?:boolean}={}) {
  return async (req:NextRequest):Promise<Identity> => {
   const bearer=req.headers.get('authorization'); if(!bearer?.startsWith('Bearer ')) fail(401,'UNAUTHORIZED','Authentication required');
   const identity=await authenticate(bearer.slice(7));
   authorize(identity.user,options);
+  if(options.requireReauth) {try {const claims=await verifyReauthentication(req.headers.get('x-epapers-reauth') || '');if(identity.user.role!=='ADMIN' || claims.sub!==identity.user.id || claims.sid!==identity.session.id || claims.purpose!=='reauth') fail(401,'REAUTH_REQUIRED','Reauthentication required');} catch {fail(401,'REAUTH_REQUIRED','Reauthentication required');}}
   return identity;
  };
 }
@@ -24,7 +26,7 @@ export function cors(req:NextRequest,response:NextResponse) {
 }
 export function preflight(req:NextRequest) {
  const response=cors(req,new NextResponse(null,{status:req.headers.get('origin')===env.APP_ORIGIN?204:403}));
- response.headers.set('Access-Control-Allow-Methods','GET,POST,PATCH,DELETE,OPTIONS'); response.headers.set('Access-Control-Allow-Headers','Content-Type,Authorization,X-EPapers-Client'); return response;
+ response.headers.set('Access-Control-Allow-Methods','GET,POST,PATCH,DELETE,OPTIONS'); response.headers.set('Access-Control-Allow-Headers','Content-Type,Authorization,X-EPapers-Client,X-EPapers-Reauth'); return response;
 }
 export function route<T>(name:string,schema:z.ZodType<T>,action:(data:T,req:NextRequest,identity?:Identity)=>Promise<unknown>,auth=false) {
  return async (req:NextRequest) => {

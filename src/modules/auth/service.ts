@@ -5,7 +5,7 @@ import type { User } from '@prisma/client';
 import { db, withTransactionRetry, type TransactionClient } from '../../lib/db';
 import { fail } from '../../lib/errors';
 import { hashPassword, verifyPassword, opaqueToken, tokenHash, otp, verifyTotp } from '../../lib/crypto';
-import { signAccess, verifyAccess } from '../../lib/jwt';
+import { signAccess, verifyAccess, signReauthentication } from '../../lib/jwt';
 import { rateLimit } from '../../lib/rate-limit';
 import { verifyTurnstile } from '../../lib/turnstile';
 import { otpEmail, resetEmail } from '../../lib/email/templates';
@@ -145,4 +145,11 @@ export function authorize(user:User,options:{roles?:string[];requireVerifiedEmai
  if(options.roles && !options.roles.includes(user.role.toLowerCase())) fail(403,'FORBIDDEN','Access denied');
  if(options.requireVerifiedEmail && !user.emailVerifiedAt) fail(403,'EMAIL_UNVERIFIED','Verify your email first');
  if(options.scope && user.role!=='ADMIN' && (user.role!=='LECTURER' || !user.lecturerVerifiedAt || user.homeDepartmentId!==options.scope.departmentId)) fail(403,'FORBIDDEN','Department access denied');
+}
+
+export async function reauthenticate(userId:string,sid:string,password:string,totp:string) {
+ const user=await db.user.findUnique({where:{id:userId}});active(user);
+ if(user.role!=='ADMIN' || !user.totpSecret || !(await verifyPassword(user.passwordHash,password)) || !verifyTotp(decrypt<string>(user.totpSecret,'totp'),totp)) fail(401,'INVALID_CREDENTIALS','Invalid credentials');
+ await withTransactionRetry(async tx=> {await lockUser(tx,userId);const current=await tx.user.findUnique({where:{id:userId}});active(current);const session=await tx.userSession.findFirst({where:{id:sid,userId,revokedAt:null,rotatedAt:null,expiresAt:{gt:new Date()}}});if(!session || current.role!=='ADMIN' || current.passwordHash!==user.passwordHash || current.totpSecret!==user.totpSecret) fail(401,'UNAUTHORIZED','Please log in again');await audit(tx,userId,'ADMIN_REAUTH');});
+ return {reauthToken:await signReauthentication(userId,sid)};
 }

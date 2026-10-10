@@ -1,7 +1,7 @@
 import { describe,it,expect,vi } from 'vitest';
 import { NextRequest } from 'next/server';
 import { SignJWT } from 'jose';
-import { signAccess,verifyAccess } from '../src/lib/jwt';
+import { signAccess,verifyAccess,signReauthentication,verifyReauthentication } from '../src/lib/jwt';
 import { schemas } from '../src/modules/auth/schemas';
 import { tokenHash,hashPassword,verifyPassword } from '../src/lib/crypto';
 import { privateUser } from '../src/modules/auth/dto';
@@ -11,6 +11,7 @@ vi.mock('../src/lib/rate-limit',()=>({rateLimit:vi.fn()}));
 describe('authentication security',()=>{
  it('issues minimal signed claims and validates issuer/audience',async()=>{const token=await signAccess({id:'user',role:'CONTRIBUTOR'},'session'); const claims=await verifyAccess(token); expect(claims).toMatchObject({sub:'user',role:'contributor',sid:'session'}); expect(claims.exp!-claims.iat!).toBe(900); expect(claims).not.toHaveProperty('email');});
  it('rejects wrong audience and expired JWTs',async()=>{ const key=new TextEncoder().encode('a'.repeat(32)); for(const data of [{aud:'other',exp:'15m'},{aud:'epapers-spa',exp:'-1s'}]) { const token=await new SignJWT({role:'contributor',sid:'session'}).setProtectedHeader({alg:'HS256'}).setSubject('user').setIssuer('epapers-api').setAudience(data.aud).setIssuedAt().setJti('jti').setExpirationTime(data.exp).sign(key); await expect(verifyAccess(token)).rejects.toThrow(); } });
+ it('separates admin reauthentication and access JWT audiences',async()=>{const reauth=await signReauthentication('admin','session');expect((await verifyReauthentication(reauth)).purpose).toBe('reauth');await expect(verifyAccess(reauth)).rejects.toThrow();const access=await signAccess({id:'admin',role:'ADMIN'},'session');await expect(verifyReauthentication(access)).rejects.toThrow();});
  it('rejects altered tokens',async()=>{const token=await signAccess({id:'user',role:'CONTRIBUTOR'},'session'); await expect(verifyAccess(token.slice(0,-5)+'xxxxx')).rejects.toThrow();});
  it('rejects admin registration, unknown fields, and avatar URLs',()=>{ const input={username:'test_user',email:'test@example.com',password:'a-strong-passphrase',fullName:'Test User',turnstileToken:'captcha'}; expect(schemas.register.parse({...input,role:'lecturer'}).role).toBe('lecturer'); expect(schemas.register.safeParse({...input,role:'admin'}).success).toBe(false); expect(schemas.register.safeParse({...input,xp:100}).success).toBe(false); expect(schemas.profile.safeParse({avatarId:'https://example.com/a.png'}).success).toBe(false); });
  it('uses salted token hashes and Argon2id',async()=>{expect(tokenHash('secret')).not.toContain('secret');const hash=await hashPassword('A long unique test password');expect(hash).toContain('$argon2id$');expect(await verifyPassword(hash,'wrong')).toBe(false);expect(await verifyPassword(hash,'A long unique test password')).toBe(true);await expect(hashPassword('password123')).rejects.toThrow();});

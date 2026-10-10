@@ -1,7 +1,7 @@
 import 'server-only';
 import pino from 'pino';
 import { env } from './env';
-const sensitive = /password|hash$|token|otp|secret|apikey|authorization|cookie|fullname|email|url|^r2_|^smtp_|^jwt_|privatekey/i;
+const sensitive = /password|hash$|token|otp|secret|apikey|authorization|cookie|full.?name|email|url|key$|salt|pepper|payload|html|text|^r2_|^smtp_|^jwt_|privatekey/i;
 export function scrub(value: unknown): unknown {
   if (Array.isArray(value)) return value.map(scrub);
   if (value instanceof Error) return { type: value.name, message: '[REDACTED]' };

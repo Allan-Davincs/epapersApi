@@ -22,11 +22,11 @@ try {
  const fixture={modules:await db.module.count({where:{codeNormalized:{startsWith:'plan'}}}),papers:await db.paper.count({where:{uploadedByUserId:owner.id}})};
  if(fixture.modules!==200 || fixture.papers!==3000) throw new Error('Unexpected fixture size');
  const plans={
- modules:await db.$queryRaw`EXPLAIN SELECT id FROM modules WHERE program_id=${program.id}::UUID AND semester=1 AND is_active AND deleted_at IS NULL`,
- recent:await db.$queryRaw`EXPLAIN SELECT id FROM papers WHERE status='APPROVED' AND deleted_at IS NULL ORDER BY created_at DESC LIMIT 25`,
- popular:await db.$queryRaw`EXPLAIN SELECT id FROM papers WHERE status='APPROVED' AND deleted_at IS NULL ORDER BY downloads_count DESC LIMIT 25`,
- search:await db.$queryRaw`EXPLAIN SELECT id FROM modules WHERE name_normalized >= 'plan module 1' AND name_normalized < 'plan module 1\uffff' AND deleted_at IS NULL`,
- auth:await db.$queryRaw`EXPLAIN SELECT id FROM users WHERE email_normalized='index_fixture@example.com' AND deleted_at IS NULL`
+ modules:await db.$queryRaw`EXPLAIN ANALYZE SELECT id FROM modules WHERE program_id=${program.id}::UUID AND semester=1 AND is_active AND deleted_at IS NULL`,
+ recent:await db.$queryRaw`EXPLAIN ANALYZE SELECT id FROM papers WHERE status='APPROVED' AND deleted_at IS NULL ORDER BY created_at DESC LIMIT 25`,
+ popular:await db.$queryRaw`EXPLAIN ANALYZE SELECT id FROM papers WHERE status='APPROVED' AND deleted_at IS NULL ORDER BY downloads_count DESC LIMIT 25`,
+ search:await db.$queryRaw`EXPLAIN ANALYZE SELECT id FROM modules WHERE name_normalized >= 'plan module 199' AND name_normalized < 'plan module 199\uffff' AND deleted_at IS NULL`,
+ auth:await db.$queryRaw`EXPLAIN ANALYZE SELECT id FROM users WHERE email_normalized='index_fixture@example.com' AND deleted_at IS NULL`
  };
  writeFileSync('docs/INDEXES.json',JSON.stringify({fixture,plans},null,2)+'\n');
  console.info('Index plans written to docs/INDEXES.json (200 modules, 3000 papers).');

@@ -6,6 +6,7 @@ const password=z.string().min(10).max(128);
 export const schemas={
  register:z.strictObject({username,email,password,role:z.enum(['contributor','lecturer']).default('contributor'),fullName:z.string().trim().min(2).max(160),turnstileToken:z.string().min(1).max(2048)}),
  login:z.strictObject({usernameOrEmail:z.string().trim().min(3).max(254),password:z.string().min(1).max(128)}),
+ reauth:z.strictObject({password:z.string().min(1).max(128),totp:z.string().regex(/^\d{6}$/)}),
  adminLogin:z.strictObject({usernameOrEmail:z.string().trim().min(3).max(254),password:z.string().min(1).max(128),totp:z.string().regex(/^\d{6}$/)}),
  verifyOtp:z.strictObject({email,code:z.string().regex(/^\d{6}$/)}),
  resend:z.strictObject({email}),
@@ -19,4 +20,4 @@ export const schemas={
 
 export const privateProfileSchema=z.strictObject({id:z.uuid(),username:z.string(),email:z.email(),fullName:z.string(),bio:z.string(),avatarId:z.string().nullable(),role:z.enum(['contributor','lecturer','admin']),emailVerified:z.boolean(),levelTitle:z.string(),joinedAt:z.iso.datetime()});
 export const sessionSchema=z.strictObject({id:z.uuid(),createdAt:z.iso.datetime(),expiresAt:z.iso.datetime()});
-export const responseSchemas={profile:privateProfileSchema,sessionList:z.array(sessionSchema),tokens:z.strictObject({accessToken:z.string(),user:privateProfileSchema}),message:z.strictObject({message:z.string()}),availability:z.strictObject({available:z.boolean()}),error:z.strictObject({error:z.strictObject({code:z.string(),message:z.string(),fields:z.array(z.strictObject({path:z.string(),message:z.string()})).optional()})})};
+export const responseSchemas={reauth:z.strictObject({reauthToken:z.string()}),profile:privateProfileSchema,sessionList:z.array(sessionSchema),tokens:z.strictObject({accessToken:z.string(),user:privateProfileSchema}),message:z.strictObject({message:z.string()}),availability:z.strictObject({available:z.boolean()}),error:z.strictObject({error:z.strictObject({code:z.string(),message:z.string(),fields:z.array(z.strictObject({path:z.string(),message:z.string()})).optional()})})};
