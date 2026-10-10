@@ -16,6 +16,15 @@ paths['/users/me'] = { patch: { security: [{ bearerAuth: [] }], requestBody: { r
 paths['/users/me/sessions'] = { get: { security: [{ bearerAuth: [] }], responses: { '200': success('sessionList') } } };
 paths['/users/me/sessions/{id}'] = { delete: { security: [{ bearerAuth: [] }], parameters: [{ name: 'id', in: 'path', required: true, schema: { type: 'string', format: 'uuid' } }], responses: { '200': success('message'), '404': { description: 'Session not found' } } } };
 paths['/health'] = { get: { responses: { '200': { description: 'Database healthy' }, '503': { description: 'Database unavailable' } } } };
+const aliases: Record<string,string> = {
+    '/auth/verify-otp':'/auth/verify-email',
+    '/auth/resend-otp':'/auth/verification/resend',
+    '/auth/sessions':'/users/me/sessions',
+    '/auth/sessions/{id}':'/users/me/sessions/{id}'
+};
+for (const [alias,canonical] of Object.entries(aliases)) paths[alias]=structuredClone(paths[canonical]);
+const refreshOperation=(paths['/auth/refresh'] as {post:Record<string,unknown>}).post;
+refreshOperation.security=[{refreshCookie:[]}];
 for (const [path, item] of Object.entries(paths)) {
     for (const [method, operation] of Object.entries(item as Record<string, Record<string, unknown>>)) {
         if (['post', 'patch', 'delete'].includes(method)) {
@@ -36,4 +45,4 @@ for (const [path, item] of Object.entries(paths)) {
         }
     }
 }
-writeFileSync('docs/openapi.yaml', JSON.stringify({ openapi: '3.1.0', info: { title: 'EPapers API', version: '1.0.0' }, servers: [{ url: '/api/v1' }], paths, components: { securitySchemes: { bearerAuth: { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' } }, schemas: definitions } }, null, 2) + '\n');
+writeFileSync('docs/openapi.yaml', JSON.stringify({ openapi: '3.1.0', info: { title: 'EPapers API', version: '1.0.0' }, servers: [{ url: '/api/v1' }], paths, components: { securitySchemes: { bearerAuth: { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' }, refreshCookie: {type:'apiKey',in:'cookie',name:'epapers_refresh'} }, schemas: definitions } }, null, 2) + '\n');
