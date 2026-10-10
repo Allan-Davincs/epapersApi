@@ -53,7 +53,7 @@ export function preflight(req: NextRequest) {
     response.headers.set('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-EPapers-Client,X-EPapers-Reauth');
     return response;
 }
-export function route<T>(name: string, schema: z.ZodType<T>, action: (data: T, req: NextRequest, identity?: Identity) => Promise<unknown>, auth = false, publicCache = false) {
+export function route<T>(name: string, schema: z.ZodType<T>, action: (data: T, req: NextRequest, identity?: Identity) => Promise<unknown>, auth: boolean | 'optional' = false, publicCache = false) {
     return async (req: NextRequest) => {
         const started = Date.now();
         const requestId = crypto.randomUUID();
@@ -63,7 +63,7 @@ export function route<T>(name: string, schema: z.ZodType<T>, action: (data: T, r
                 fail(403, 'CSRF_FAILED', 'Invalid client origin');
             // Trust only the header overwritten by Cloudflare; restrict VPS ingress to Cloudflare in production.
             await rateLimit('ip:' + name + ':' + ipHash(req.headers.get('cf-connecting-ip') || 'local'), name === 'login' ? 20 : 60, 900);
-            const identity = auth ? await withAuth()(req) : undefined;
+            const identity = auth === true || (auth === 'optional' && req.headers.has('authorization')) ? await withAuth()(req) : undefined;
             if (identity && req.method !== 'GET') await rateLimit('account:' + name + ':' + identity.user.id, 60, 900);
             let raw: unknown;
             if (req.method === 'GET')

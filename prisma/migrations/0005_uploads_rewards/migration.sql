@@ -2,6 +2,8 @@ ALTER TABLE stored_files ADD COLUMN completed_at TIMESTAMPTZ;
 ALTER TABLE stored_files ADD COLUMN published_at TIMESTAMPTZ;
 ALTER TABLE stored_files ADD COLUMN page_count INT4 CHECK(page_count IS NULL OR page_count > 0);
 ALTER TABLE jobs ADD COLUMN lease_token UUID;
+ALTER TABLE jobs ADD COLUMN dedupe_key STRING;
+CREATE UNIQUE INDEX jobs_dedupe_key_key ON jobs(dedupe_key);
 ALTER TABLE xp_ledger ADD COLUMN reward_key STRING;
 CREATE UNIQUE INDEX xp_ledger_reward_key_key ON xp_ledger(reward_key);
 ALTER TABLE paper_download_events ADD COLUMN processed_at TIMESTAMPTZ;

@@ -300,6 +300,7 @@ model Job {
   attempts  Int       @default(0)
   lastError String?   @map("last_error")
   leaseToken String? @map("lease_token") @db.Uuid
+  dedupeKey String? @unique @map("dedupe_key")
   createdAt DateTime  @default(now()) @map("created_at") @db.Timestamptz
   @@index([status, runAt])
   @@map("jobs")
