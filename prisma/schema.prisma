@@ -50,6 +50,7 @@ enum ScanStatus {
 }
 
 model Department {
+  lecturerVerifications LecturerVerification[]
   id            String    @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   code          String
   codeNormalized String   @map("code_normalized")
@@ -119,6 +120,8 @@ model Module {
 }
 
 model User {
+  lecturerVerifications LecturerVerification[] @relation("VerificationApplicant")
+  verificationReviews LecturerVerification[] @relation("VerificationReviewer")
   id                  String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   username            String
   usernameNormalized String        @unique @map("username_normalized")
@@ -243,6 +246,7 @@ model StoredFile {
 }
 
 model Paper {
+  purgeStartedAt DateTime? @map("purge_started_at") @db.Timestamptz
   id                   String        @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
   moduleId             String        @map("module_id") @db.Uuid
   uploadedByUserId     String        @map("uploaded_by_user_id") @db.Uuid
@@ -609,4 +613,23 @@ model EmailDailyCounter {
   day DateTime @id @db.Date
   sent BigInt @default(0) @db.Int8
   @@map("email_daily_counters")
+}
+
+model LecturerVerification {
+ id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+ userId String @map("user_id") @db.Uuid
+ departmentId String @map("department_id") @db.Uuid
+ evidence String
+ status String @default("pending")
+ reviewedByUserId String? @map("reviewed_by_user_id") @db.Uuid
+ reviewedAt DateTime? @map("reviewed_at") @db.Timestamptz
+ reviewNote String? @map("review_note")
+ createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+ user User @relation("VerificationApplicant",fields:[userId],references:[id],onDelete:Restrict)
+ reviewer User? @relation("VerificationReviewer",fields:[reviewedByUserId],references:[id],onDelete:Restrict)
+ department Department @relation(fields:[departmentId],references:[id],onDelete:Restrict)
+ @@index([status,createdAt(sort:Desc)])
+ @@index([departmentId])
+ @@index([reviewedByUserId])
+ @@map("lecturer_verifications")
 }

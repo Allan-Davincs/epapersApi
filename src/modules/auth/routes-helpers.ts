@@ -53,7 +53,7 @@ export function preflight(req: NextRequest) {
     response.headers.set('Access-Control-Allow-Headers', 'Content-Type,Authorization,X-EPapers-Client,X-EPapers-Reauth');
     return response;
 }
-export function route<T>(name: string, schema: z.ZodType<T>, action: (data: T, req: NextRequest, identity?: Identity) => Promise<unknown>, auth: boolean | 'optional' = false, publicCache = false) {
+export function route<T>(name: string, schema: z.ZodType<T>, action: (data: T, req: NextRequest, identity?: Identity) => Promise<unknown>, auth: boolean | 'optional' | {roles:string[];requireReauth?:boolean} = false, publicCache = false) {
     return async (req: NextRequest) => {
         const started = Date.now();
         const requestId = crypto.randomUUID();
@@ -63,11 +63,14 @@ export function route<T>(name: string, schema: z.ZodType<T>, action: (data: T, r
                 fail(403, 'CSRF_FAILED', 'Invalid client origin');
             // Trust only the header overwritten by Cloudflare; restrict VPS ingress to Cloudflare in production.
             await rateLimit('ip:' + name + ':' + ipHash(req.headers.get('cf-connecting-ip') || 'local'), name === 'login' ? 20 : 60, 900);
-            const identity = auth === true || (auth === 'optional' && req.headers.has('authorization')) ? await withAuth()(req) : undefined;
+            const identity = typeof auth === 'object' ? await withAuth(auth)(req) : auth === true || (auth === 'optional' && req.headers.has('authorization')) ? await withAuth()(req) : undefined;
             if (identity && req.method !== 'GET') await rateLimit('account:' + name + ':' + identity.user.id, 60, 900);
             let raw: unknown;
-            if (req.method === 'GET')
-                raw = Object.fromEntries(new URL(req.url).searchParams);
+            if (req.method === 'GET') {
+                const params=new URL(req.url).searchParams;
+                if(new Set(params.keys()).size !== [...params.keys()].length)fail(422,'DUPLICATE_QUERY','Repeated query parameters are not allowed');
+                raw = Object.fromEntries(params);
+            }
             else {
                 const reader = req.body?.getReader();
                 let size = 0;
