@@ -169,6 +169,7 @@ model User {
   usernameRegistryUserId UsernameRegistry[] @relation("UsernameRegistryUserId")
 
   authChallengeUserId AuthChallenge[] @relation("AuthChallengeUserId")
+  adminAuthChallenges AdminAuthChallenge[]
 
   appSettingUpdatedByUserId AppSetting[] @relation("AppSettingUpdatedByUserId")
 
@@ -215,7 +216,9 @@ model UserSession {
   createdAt        DateTime  @default(now()) @map("created_at") @db.Timestamptz
   expiresAt        DateTime  @map("expires_at") @db.Timestamptz
   revokedAt        DateTime? @map("revoked_at") @db.Timestamptz
+  adminEmailVerifiedAt DateTime? @map("admin_email_verified_at") @db.Timestamptz
   user             User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  adminAuthChallenges AdminAuthChallenge[]
   @@index([userId, expiresAt])
   @@map("user_sessions")
   @@index([familyId])
@@ -321,6 +324,25 @@ model UsernameRegistry {
 
   relatedUserId User @relation("UsernameRegistryUserId", fields: [userId], references: [id], onDelete: Restrict)
 
+}
+
+model AdminAuthChallenge {
+  id String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
+  userId String @map("user_id") @db.Uuid
+  kind String
+  sessionId String? @map("session_id") @db.Uuid
+  challengeHash String @unique @map("challenge_hash")
+  codeHash String @map("code_hash")
+  credentialHash String @map("credential_hash")
+  expiresAt DateTime @map("expires_at") @db.Timestamptz
+  attempts BigInt @default(0) @db.Int8
+  consumedAt DateTime? @map("consumed_at") @db.Timestamptz
+  createdAt DateTime @default(now()) @map("created_at") @db.Timestamptz
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  session UserSession? @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  @@index([userId, kind, createdAt(sort: Desc)])
+  @@index([expiresAt])
+  @@map("admin_auth_challenges")
 }
 
 model AuthChallenge {

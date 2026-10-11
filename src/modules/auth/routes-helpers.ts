@@ -133,4 +133,4 @@ export function sessionResponse(result: {
     response.cookies.set('epapers_refresh', result.refreshToken, { httpOnly: true, secure: true, sameSite: 'lax', path: '/api/v1/auth', domain: env.COOKIE_DOMAIN, maxAge: Math.max(0, Math.floor((result.session.expiresAt.getTime() - Date.now()) / 1000)) });
     return response;
 }
-export function clearSession() { const response = NextResponse.json({ data: { message: 'Logged out' } }); response.cookies.set('epapers_refresh', '', { httpOnly: true, secure: true, sameSite: 'lax', path: '/api/v1/auth', domain: env.COOKIE_DOMAIN, maxAge: 0 }); return response; }
+export function clearSession(message = 'Logged out') { const response = NextResponse.json({ data: { message } }); response.cookies.set('epapers_refresh', '', { httpOnly: true, secure: true, sameSite: 'lax', path: '/api/v1/auth', domain: env.COOKIE_DOMAIN, maxAge: 0 }); return response; }

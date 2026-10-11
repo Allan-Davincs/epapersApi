@@ -13,11 +13,13 @@ Fill secret environment values locally using Postman; do not export a filled env
 | baseUrl | Complete API prefix, including `/api/v1`, without trailing slash. |
 | appOrigin | Exact allowed SPA origin; added as Origin on JSON mutations. |
 | username, email, password, fullName | Isolated contributor account registration/login values. Use a unique username/email for each new registration. |
-| adminUsername, adminPassword, adminTotp | Provisioned admin credentials and current six-digit authenticator code. TOTP expires; update before login/reauth. |
+| adminUsername, adminPassword | Credentials for an account manually assigned ADMIN. |
+| adminEmailOtp | Six-digit code from the latest Epapers admin email; enter it locally before verification. |
+| adminLoginChallengeToken, adminReauthChallengeToken | Captured automatically when login or action confirmation sends a code. |
 | lecturerAccessToken | Verified-email lecturer access token; manually paste or obtain by logging in as that lecturer using username/password. |
 | emailOtp, resetToken, newPassword | Values received from email and chosen reset password. Real worker/email delivery required. |
 | accessToken, adminAccessToken | Captured from successful login/refresh according to returned role. Normal private routes use accessToken; admin routes use adminAccessToken. |
-| reauthToken | Captured from `/auth/reauth`; bound to that admin session and expires after five minutes. |
+| reauthToken | Captured from `/auth/reauth/verify`; bound to that admin session and expires after five minutes. |
 | departmentId, programId, moduleId, paperId | Selected UUIDs. Public list requests capture the first result only when a variable is empty. Clear/change them to select different records. |
 | createdDepartmentId, createdProgramId, createdModuleId | Captured by admin create calls; curriculum PATCH/DELETE targets these dedicated test records. Existing seeded curriculum IDs are not selected automatically for edits/deletes. |
 | targetUserId | Explicit isolated target for admin user detail/XP operations; never auto-selected from an admin user list. |
@@ -55,7 +57,7 @@ Assertions and variable capture run in post-response scripts; see [Postman test-
 
 **01 User authentication:** register an isolated contributor/lecturer; run worker and receive email; verify using emailOtp; login to capture accessToken. Username availability is public. OTP/reset responses may be generic and do not prove an email was sent or an account exists. verify-otp/verify-email and resend-otp/verification/resend are aliases: choose one, not both for a single-use OTP. Forgot/reset require the appropriate email/reset values. No admin registration exists.
 
-**02 Admin authentication:** first provision a verified admin with TOTP as described in ADMIN.md/DEPLOY.md; admin login captures adminAccessToken. Reauth captures reauthToken. Sensitive admin requests attach X-EPapers-Reauth automatically. A new login/refresh session can invalidate an old proof: reauthenticate again. No admin is seeded and the collection cannot bypass provisioning.
+**02 Admin authentication:** enable `allowExternalActions` for requests that send email codes. provision a verified ADMIN account as described in ADMIN.md/DEPLOY.md. POST /auth/admin/login sends an email code and captures adminLoginChallengeToken, without a session. Set adminEmailOtp from that email, then POST /auth/admin/verify-login to capture adminAccessToken. POST /auth/reauth with the password sends a separate email code and captures adminReauthChallengeToken. Set adminEmailOtp to the new code and POST /auth/reauth/verify to capture reauthToken. Codes expire after ten minutes, allow five attempts and cannot be reused. Repeat the password request after 60 seconds to resend. Sensitive admin requests attach X-EPapers-Reauth automatically. A new login/refresh session can invalidate an old proof: reauthenticate again. No admin is seeded and the collection cannot bypass provisioning.
 
 **03 Private account and leaderboard:** own profile, papers, sessions, achievements, notifications, export and authenticated leaderboard. Owner is determined by the token, not targetUserId. Profile PATCH changes bio by default and preserves omitted fields. Notification PATCH marks read; read-all affects only your account. Leaderboard exposes XP, while private/public profiles expose only levelTitle. Export has independent paperCursor/notificationCursor; follow each until null. Account DELETE requires your password and both mutation/destructive gates; it anonymizes and revokes the account and should be performed last on a throwaway user.
 
@@ -82,7 +84,7 @@ PMTESTPROG is created by the admin program example; replace it with an actual ac
 
 The public folder also has an allowed-origin OPTIONS check expecting 204, the exact Access-Control-Allow-Origin and credentials enabled; the negative folder checks foreign-origin preflight returns 403 without an allow-origin header. These test API CORS, not browser R2 CORS. Normal JSON request bodies are rendered safely from variables, so embedded quotes in passwords and multiline CSV values do not break JSON. Edit request fields in the Body tab as needed; its pre-request script renders that current body safely. Regenerate to reset examples to the contract defaults.
 
-Start with the public and negative folders. Then run authenticated reads. Run stateful writes individually in the order above, confirming real email/challenge/scan transitions, rather than assuming one full Runner pass can acquire OTP/TOTP/challenges and a file automatically. Guest/contributor/lecturer/admin role denial, invalid reauth, ownership, unclean-file denial, double award and purge retries also have real integration coverage in `npm run test:db`; this collection's seven negatives are not a replacement for that suite.
+Start with the public and negative folders. Then run authenticated reads. Run stateful writes individually in the order above, confirming real email/challenge/scan transitions, rather than assuming one full Runner pass can acquire OTP/email codes/challenges and a file automatically. Guest/contributor/lecturer/admin role denial, invalid reauth, ownership, unclean-file denial, double award and purge retries also have real integration coverage in `npm run test:db`; this collection's seven negatives are not a replacement for that suite.
 
 ## Rebuild and verify configuration
 
@@ -107,14 +109,17 @@ All success requests expect HTTP 200. The collection includes strict request exa
 
 | Method | Path (after /api/v1) | Authentication | Reauth | Required body fields |
 |---|---|---|---|---|
-| POST | /auth/reauth | Admin bearer | ? | password, totp |
+| POST | /auth/reauth | Admin bearer | ? | password |
+| POST | /auth/reauth/verify | Admin bearer | ? | challengeToken, code |
+| POST | /auth/admin/verify-login | Public / optional bearer | ? | challengeToken, code |
 | POST | /auth/register | Public / optional bearer | ? | username, email, password, fullName |
 | POST | /auth/login | Public / optional bearer | ? | usernameOrEmail, password |
-| POST | /auth/admin/login | Public / optional bearer | ? | usernameOrEmail, password, totp |
+| POST | /auth/admin/login | Public / optional bearer | ? | usernameOrEmail, password |
 | POST | /auth/verify-email | Public / optional bearer | ? | email, code |
 | POST | /auth/verification/resend | Public / optional bearer | ? | email |
 | POST | /auth/forgot-password | Public / optional bearer | ? | email |
 | POST | /auth/reset-password | Public / optional bearer | ? | token, password |
+| POST | /auth/change-password | User bearer | ? | currentPassword, password |
 | POST | /auth/refresh | Refresh cookie | ? | {} / query only |
 | POST | /auth/logout | Public / optional bearer | ? | {} / query only |
 | POST | /auth/logout-all | User bearer | ? | {} / query only |

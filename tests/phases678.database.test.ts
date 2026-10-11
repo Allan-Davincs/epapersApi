@@ -31,7 +31,7 @@ beforeAll(async () => {
         else
             lecturer = u;
     }
-    const s = await db.userSession.create({ data: { userId: admin.id, refreshTokenHash: randomUUID(), familyId: randomUUID(), expiresAt: new Date(Date.now() + 3600000) } });
+    const s = await db.userSession.create({ data: { userId: admin.id, adminEmailVerifiedAt: new Date(), refreshTokenHash: randomUUID(), familyId: randomUUID(), expiresAt: new Date(Date.now() + 3600000) } });
     sessionId = s.id;
     token = await signReauthentication(admin.id, s.id);
     vi.spyOn(storage, 'delete').mockResolvedValue(undefined);

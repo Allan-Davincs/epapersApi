@@ -1,5 +1,5 @@
-import { readFileSync, writeFileSync, readdirSync } from 'node:fs';
-import { resolve, join, basename } from 'node:path';
+import { readFileSync, writeFileSync, readdirSync, mkdirSync, existsSync } from 'node:fs';
+import { resolve, join, basename, dirname } from 'node:path';
 import { createRequire } from 'node:module';
 import assert from 'node:assert/strict';
 
@@ -15,11 +15,20 @@ function files(directory) {
 const requests = collection.item.flatMap(folder => folder.item);
 const byName = new Map(requests.map(item => [item.name, item]));
 const localFiles = files(collectionDirectory).filter(file => file.endsWith('.request.yaml'));
-assert.equal(localFiles.length, requests.length, 'Local View request count differs; review the workspace before synchronizing');
+const localRequests = localFiles.map(file => ({ file, local: load(readFileSync(file, 'utf8')) }));
+const localNames = new Set(localRequests.map(({ file, local }) => local.name || basename(file, '.request.yaml')));
+for (const folder of collection.item) {
+  for (const [index, item] of folder.item.entries()) {
+    if (localNames.has(item.name)) continue;
+    const filename = item.name.replaceAll('/', '-').replaceAll('{', '').replaceAll('}', '') + '.request.yaml';
+    const file = join(collectionDirectory, folder.name, filename);
+    assert.ok(!existsSync(file), 'New request would overwrite an existing file: ' + item.name);
+    localRequests.push({ file, local: { $kind: 'http-request', name: item.name, order: (index + 1) * 1000 } });
+  }
+}
 const updates = [];
 const seen = new Set();
-for (const file of localFiles) {
-  const local = load(readFileSync(file, 'utf8'));
+for (const { file, local } of localRequests) {
   const name = local.name || basename(file, '.request.yaml');
   const item = byName.get(name);
   assert.ok(item, 'Unknown Local View request: ' + name);
@@ -47,7 +56,7 @@ const environmentFile = join(destination, 'postman/environments/epapers.environm
 // The old .json file contained YAML; output valid JSON (also valid YAML) for both importers.
 const existing = load(readFileSync(environmentFile, 'utf8'));
 const existingValues = new Map((existing.values || []).map(value => [value.key, value]));
-const obsolete = key => /turnstile/i.test(key);
+const obsolete = key => /turnstile|adminTotp/i.test(key);
 const values = template.values.map(value => ({ ...value, ...existingValues.get(value.key) }));
 for (const [key, value] of existingValues) if (!obsolete(key) && !values.some(item => item.key === key)) values.push(value);
 updates.push([environmentFile, JSON.stringify({ ...existing, name: existing.name || template.name, values, _postman_variable_scope: 'environment' }, null, 2) + '\n']);
@@ -61,5 +70,5 @@ for (const [file, content] of updates) {
   if (file.endsWith('.yaml')) load(content);
   if (file.endsWith('.json')) JSON.parse(content);
 }
-for (const [file, content] of updates) writeFileSync(file, content);
+for (const [file, content] of updates) { mkdirSync(dirname(file), { recursive: true }); writeFileSync(file, content); }
 console.info(`Updated ${requests.length} Local View requests, collection schemas, import JSON, guide and environment. Existing environment values preserved; no HTTP requests sent.`);

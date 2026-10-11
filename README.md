@@ -8,6 +8,8 @@ Strict TypeScript API for DIT using Next.js App Router, Prisma and CockroachDB. 
 
 ## Setup
 
+For testing on Heroku under team `measured2`, see [Heroku deployment](docs/HEROKU.md). The API, worker and migration release process are defined in `Procfile`; local `.env` values are uploaded as private config vars.
+
 1. Use Node.js 24 or Node.js 22.19+. Copy `.env.example` to `.env` and configure credentials locally.
 2. For CockroachDB Cloud use TLS: `sslmode=require&sslaccept=strict` (Prisma connection options). Never disable certificate validation.
 3. Run `npm install`, `npm run db:generate`, `npm run db:migrate`, then `npm run db:seed`.

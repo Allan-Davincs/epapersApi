@@ -47,7 +47,205 @@
                   "type": "object",
                   "properties": {
                     "data": {
+                      "$ref": "#/components/schemas/adminChallenge"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden or invalid origin",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/reauth/verify": {
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/auth_adminVerify"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-EPapers-Client",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "web"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
                       "$ref": "#/components/schemas/reauth"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden or invalid origin",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/admin/verify-login": {
+      "post": {
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/auth_adminVerify"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-EPapers-Client",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "web"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/tokens"
                     }
                   },
                   "required": [
@@ -241,7 +439,7 @@
                   "type": "object",
                   "properties": {
                     "data": {
-                      "$ref": "#/components/schemas/tokens"
+                      "$ref": "#/components/schemas/login"
                     }
                   },
                   "required": [
@@ -338,7 +536,7 @@
                   "type": "object",
                   "properties": {
                     "data": {
-                      "$ref": "#/components/schemas/tokens"
+                      "$ref": "#/components/schemas/adminChallenge"
                     }
                   },
                   "required": [
@@ -702,6 +900,107 @@
             "application/json": {
               "schema": {
                 "$ref": "#/components/schemas/auth_reset"
+              }
+            }
+          }
+        },
+        "parameters": [
+          {
+            "name": "X-EPapers-Client",
+            "in": "header",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "const": "web"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/message"
+                    }
+                  },
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Authentication required",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Forbidden or invalid origin",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Invalid request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Rate limited",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/auth/change-password": {
+      "post": {
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/auth_changePassword"
               }
             }
           }
@@ -12043,16 +12342,9 @@
           },
           "password": {
             "type": "string",
-            "minLength": 10,
-            "maxLength": 128
-          },
-          "role": {
-            "default": "contributor",
-            "type": "string",
-            "enum": [
-              "contributor",
-              "lecturer"
-            ]
+            "minLength": 6,
+            "maxLength": 128,
+            "pattern": "^(?=.*[a-zA-Z])(?=.*[0-9]).{6,128}$"
           },
           "fullName": {
             "type": "string",
@@ -12097,15 +12389,10 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 128
-          },
-          "totp": {
-            "type": "string",
-            "pattern": "^\\d{6}$"
           }
         },
         "required": [
-          "password",
-          "totp"
+          "password"
         ],
         "additionalProperties": false
       },
@@ -12122,16 +12409,31 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 128
+          }
+        },
+        "required": [
+          "usernameOrEmail",
+          "password"
+        ],
+        "additionalProperties": false
+      },
+      "auth_adminVerify": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "challengeToken": {
+            "type": "string",
+            "minLength": 43,
+            "maxLength": 43
           },
-          "totp": {
+          "code": {
             "type": "string",
             "pattern": "^\\d{6}$"
           }
         },
         "required": [
-          "usernameOrEmail",
-          "password",
-          "totp"
+          "challengeToken",
+          "code"
         ],
         "additionalProperties": false
       },
@@ -12199,12 +12501,35 @@
           },
           "password": {
             "type": "string",
-            "minLength": 10,
-            "maxLength": 128
+            "minLength": 6,
+            "maxLength": 128,
+            "pattern": "^(?=.*[a-zA-Z])(?=.*[0-9]).{6,128}$"
           }
         },
         "required": [
           "token",
+          "password"
+        ],
+        "additionalProperties": false
+      },
+      "auth_changePassword": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "currentPassword": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 128
+          },
+          "password": {
+            "type": "string",
+            "minLength": 6,
+            "maxLength": 128,
+            "pattern": "^(?=.*[a-zA-Z])(?=.*[0-9]).{6,128}$"
+          }
+        },
+        "required": [
+          "currentPassword",
           "password"
         ],
         "additionalProperties": false
@@ -12279,6 +12604,174 @@
         ],
         "additionalProperties": false
       },
+      "adminChallenge": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "verificationRequired": {
+            "type": "boolean",
+            "const": true
+          },
+          "challengeToken": {
+            "type": "string",
+            "minLength": 43,
+            "maxLength": 43
+          },
+          "expiresAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+          },
+          "resendAfter": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+          },
+          "message": {
+            "type": "string"
+          }
+        },
+        "required": [
+          "verificationRequired",
+          "challengeToken",
+          "expiresAt",
+          "resendAfter",
+          "message"
+        ],
+        "additionalProperties": false
+      },
+      "login": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "verificationRequired": {
+                "type": "boolean",
+                "const": true
+              },
+              "challengeToken": {
+                "type": "string",
+                "minLength": 43,
+                "maxLength": 43
+              },
+              "expiresAt": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+              },
+              "resendAfter": {
+                "type": "string",
+                "format": "date-time",
+                "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+              },
+              "message": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "verificationRequired",
+              "challengeToken",
+              "expiresAt",
+              "resendAfter",
+              "message"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "accessToken": {
+                "type": "string"
+              },
+              "user": {
+                "type": "object",
+                "properties": {
+                  "id": {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  "username": {
+                    "type": "string"
+                  },
+                  "email": {
+                    "type": "string",
+                    "format": "email",
+                    "pattern": "^(?:[A-Za-z0-9_'+\\-]+\\.)*[A-Za-z0-9_'+\\-]*[A-Za-z0-9_+-]@(?:[A-Za-z0-9][A-Za-z0-9\\-]*\\.)+[A-Za-z]{2,}$"
+                  },
+                  "fullName": {
+                    "type": "string"
+                  },
+                  "bio": {
+                    "type": "string"
+                  },
+                  "avatarId": {
+                    "type": [
+                      "string",
+                      "null"
+                    ]
+                  },
+                  "role": {
+                    "type": "string",
+                    "enum": [
+                      "contributor",
+                      "lecturer",
+                      "admin"
+                    ]
+                  },
+                  "emailVerified": {
+                    "type": "boolean"
+                  },
+                  "isLecturerVerified": {
+                    "type": "boolean"
+                  },
+                  "homeDepartmentId": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "uuid",
+                        "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "levelTitle": {
+                    "type": "string"
+                  },
+                  "joinedAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                  }
+                },
+                "required": [
+                  "id",
+                  "username",
+                  "email",
+                  "fullName",
+                  "bio",
+                  "avatarId",
+                  "role",
+                  "emailVerified",
+                  "isLecturerVerified",
+                  "homeDepartmentId",
+                  "levelTitle",
+                  "joinedAt"
+                ],
+                "additionalProperties": false
+              }
+            },
+            "required": [
+              "accessToken",
+              "user"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
       "reauth": {
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "type": "object",
@@ -12332,6 +12825,21 @@
           "emailVerified": {
             "type": "boolean"
           },
+          "isLecturerVerified": {
+            "type": "boolean"
+          },
+          "homeDepartmentId": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid",
+                "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
           "levelTitle": {
             "type": "string"
           },
@@ -12350,6 +12858,8 @@
           "avatarId",
           "role",
           "emailVerified",
+          "isLecturerVerified",
+          "homeDepartmentId",
           "levelTitle",
           "joinedAt"
         ],
@@ -12431,6 +12941,21 @@
               "emailVerified": {
                 "type": "boolean"
               },
+              "isLecturerVerified": {
+                "type": "boolean"
+              },
+              "homeDepartmentId": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
               "levelTitle": {
                 "type": "string"
               },
@@ -12449,6 +12974,8 @@
               "avatarId",
               "role",
               "emailVerified",
+              "isLecturerVerified",
+              "homeDepartmentId",
               "levelTitle",
               "joinedAt"
             ],
@@ -14007,6 +14534,215 @@
                 "title": {
                   "type": "string"
                 },
+                "category": {
+                  "type": "string",
+                  "enum": [
+                    "TEST",
+                    "UE",
+                    "SUPP"
+                  ]
+                },
+                "academicYear": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "semester": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "examPeriod": {
+                  "type": "string"
+                },
+                "module": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "programId": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "semester": {
+                      "type": "integer",
+                      "minimum": -9007199254740991,
+                      "maximum": 9007199254740991
+                    },
+                    "levelYear": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    },
+                    "credits": {
+                      "type": [
+                        "number",
+                        "null"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "programId",
+                    "code",
+                    "name",
+                    "semester",
+                    "levelYear",
+                    "credits"
+                  ],
+                  "additionalProperties": false
+                },
+                "program": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "departmentId": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "level": {
+                      "type": "string",
+                      "enum": [
+                        "ORDINARY_DIPLOMA",
+                        "BACHELOR"
+                      ]
+                    },
+                    "campus": {
+                      "type": "string",
+                      "enum": [
+                        "MAIN",
+                        "MWANZA",
+                        "SONGWE"
+                      ]
+                    },
+                    "awardTitle": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "departmentId",
+                    "code",
+                    "name",
+                    "level",
+                    "campus",
+                    "awardTitle"
+                  ],
+                  "additionalProperties": false
+                },
+                "department": {
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "format": "uuid",
+                      "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                    },
+                    "code": {
+                      "type": "string"
+                    },
+                    "name": {
+                      "type": "string"
+                    },
+                    "description": {
+                      "type": "string"
+                    },
+                    "icon": {
+                      "type": "string"
+                    }
+                  },
+                  "required": [
+                    "id",
+                    "code",
+                    "name",
+                    "description",
+                    "icon"
+                  ],
+                  "additionalProperties": false
+                },
+                "uploader": {
+                  "anyOf": [
+                    {
+                      "type": "object",
+                      "properties": {
+                        "username": {
+                          "type": "string"
+                        },
+                        "avatarId": {
+                          "type": [
+                            "string",
+                            "null"
+                          ]
+                        },
+                        "levelTitle": {
+                          "type": "string"
+                        },
+                        "isLecturerVerified": {
+                          "type": "boolean"
+                        }
+                      },
+                      "required": [
+                        "username",
+                        "avatarId",
+                        "levelTitle",
+                        "isLecturerVerified"
+                      ],
+                      "additionalProperties": false
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "pageCount": {
+                  "type": [
+                    "number",
+                    "null"
+                  ]
+                },
+                "hasMarkingScheme": {
+                  "type": "boolean"
+                },
+                "downloadAvailable": {
+                  "type": "boolean"
+                },
+                "viewsCount": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "downloadsCount": {
+                  "type": "integer",
+                  "minimum": -9007199254740991,
+                  "maximum": 9007199254740991
+                },
+                "createdAt": {
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                },
                 "status": {
                   "type": "string",
                   "enum": [
@@ -14027,21 +14763,29 @@
                 },
                 "levelTitle": {
                   "type": "string"
-                },
-                "createdAt": {
-                  "type": "string",
-                  "format": "date-time",
-                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
                 }
               },
               "required": [
                 "id",
                 "title",
+                "category",
+                "academicYear",
+                "semester",
+                "examPeriod",
+                "module",
+                "program",
+                "department",
+                "uploader",
+                "pageCount",
+                "hasMarkingScheme",
+                "downloadAvailable",
+                "viewsCount",
+                "downloadsCount",
+                "createdAt",
                 "status",
                 "rejectionReason",
                 "duplicateWarning",
-                "levelTitle",
-                "createdAt"
+                "levelTitle"
               ],
               "additionalProperties": false
             }
@@ -17186,6 +17930,21 @@
               "emailVerified": {
                 "type": "boolean"
               },
+              "isLecturerVerified": {
+                "type": "boolean"
+              },
+              "homeDepartmentId": {
+                "anyOf": [
+                  {
+                    "type": "string",
+                    "format": "uuid",
+                    "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
               "levelTitle": {
                 "type": "string"
               },
@@ -17204,6 +17963,8 @@
               "avatarId",
               "role",
               "emailVerified",
+              "isLecturerVerified",
+              "homeDepartmentId",
               "levelTitle",
               "joinedAt"
             ],
@@ -17887,6 +18648,15 @@
             "type": "string",
             "minLength": 1,
             "maxLength": 2000
+          },
+          "sendEmail": {
+            "default": false,
+            "type": "boolean"
+          },
+          "requestId": {
+            "type": "string",
+            "format": "uuid",
+            "pattern": "^([0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-8][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}|00000000-0000-0000-0000-000000000000|ffffffff-ffff-ffff-ffff-ffffffffffff)$"
           }
         },
         "required": [

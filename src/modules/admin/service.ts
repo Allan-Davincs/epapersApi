@@ -11,6 +11,8 @@ import { page, cursorId, activeDepartment } from '../catalog/service';
 import { invalidateDownloads } from '../../lib/download-cache';
 import { env } from '../../lib/env';
 import { scrub } from '../../lib/logger';
+import { tokenHash } from '../../lib/crypto';
+import { rateLimit } from '../../lib/rate-limit';
 type List = {
     cursor?: string;
     limit: number;
@@ -31,8 +33,8 @@ export async function manageUser(admin: User, id: string, input: z.infer<typeof 
             fail(404, 'NOT_FOUND', 'User not found');
         if (id === admin.id && ((input.status && input.status !== 'ACTIVE') || (input.role && input.role !== 'ADMIN')))
             fail(409, 'SELF_LOCKOUT', 'Cannot remove your own administrative access');
-        if (input.role === 'ADMIN' && (!current.totpSecret || !current.emailVerifiedAt))
-            fail(409, 'TOTP_REQUIRED', 'Admin promotion requires verified email and enrolled TOTP');
+        if (input.role === 'ADMIN' && !current.emailVerifiedAt)
+            fail(409, 'EMAIL_UNVERIFIED', 'Admin promotion requires verified email');
         const role = input.role || current.role, departmentId = input.homeDepartmentId === undefined ? current.homeDepartmentId : input.homeDepartmentId;
         if (departmentId && !await tx.department.findFirst({ where: { id: departmentId, ...activeDepartment } }))
             fail(422, 'INVALID_DEPARTMENT', 'Choose an active department');
@@ -92,13 +94,34 @@ export async function restorePaper(admin: User, id: string, reason: string, proo
     fail(409, 'MODULE_INACTIVE', 'Curriculum must be active before restoring'); await tx.paper.update({ where: { id }, data: { deletedAt: null, deletedById: null } }); await tx.auditLog.create({ data: { actorUserId: admin.id, action: 'PAPER_RESTORED', targetType: 'paper', targetId: id, reason } }); return p; }, { isolationLevel: 'Serializable', timeout: 20000 })); invalidateDownloads(p.examFileId, p.markingSchemeFileId); return { message: 'Paper restored' }; }
 export async function announcements(admin: User, q: List) { authorize(admin, { roles: ['admin'] }); return page(await db.announcement.findMany(paging(q)), q.limit, announcementDto); }
 export async function activeAnnouncements(q: List) { return page(await db.announcement.findMany({ where: { isActive: true, startsAt: { lte: new Date() }, OR: [{ endsAt: null }, { endsAt: { gt: new Date() } }] }, ...paging(q) }), q.limit, announcementDto); }
-export async function saveAnnouncement(admin: User, input: z.infer<typeof adminSchemas.announcement> | z.infer<typeof adminSchemas.announcementPatch>, id?: string) { authorize(admin, { roles: ['admin'] }); return withTransactionRetry(async (tx) => { await adminGuard(tx, admin); const current = id ? await tx.announcement.findUnique({ where: { id } }) : null; if (id && !current)
+export async function saveAnnouncement(admin: User, input: z.infer<typeof adminSchemas.announcement> | z.infer<typeof adminSchemas.announcementPatch>, id?: string) { authorize(admin, { roles: ['admin'] });
+    if (!id) await rateLimit('broadcast-create:' + admin.id, 10, 3600);
+    const submission = !id ? adminSchemas.announcement.parse(input) : null;
+    const fingerprint = submission ? tokenHash(JSON.stringify({ ...submission, requestId: undefined })) : '';
+    return withTransactionRetry(async (tx) => { await adminGuard(tx, admin);
+    if (submission?.requestId) {
+        const receipt = await tx.job.findUnique({ where: { dedupeKey: 'broadcast_request:' + admin.id + ':' + submission.requestId } });
+        if (receipt) {
+            const payload = receipt.payload as { announcementId: string; fingerprint: string };
+            if (payload.fingerprint !== fingerprint) fail(409, 'REQUEST_ID_REUSED', 'Use a new request ID for a different announcement');
+            const existing = await tx.announcement.findUnique({ where: { id: payload.announcementId } });
+            if (!existing) fail(409, 'ANNOUNCEMENT_UNAVAILABLE', 'Announcement is no longer available');
+            return announcementDto(existing);
+        }
+    }
+    const current = id ? await tx.announcement.findUnique({ where: { id } }) : null; if (id && !current)
     fail(404, 'NOT_FOUND', 'Announcement not found'); const startsAt = input.startsAt ? new Date(input.startsAt) : current?.startsAt, endsAt = input.endsAt === undefined ? current?.endsAt : input.endsAt ? new Date(input.endsAt) : null; if (endsAt && startsAt && endsAt <= startsAt)
     fail(422, 'INVALID_WINDOW', 'End must follow start'); let a; if (id)
     a = await tx.announcement.update({ where: { id }, data: { title: input.title, content: input.content, type: input.type, isActive: input.isActive, startsAt, endsAt } });
 else {
     const v = adminSchemas.announcement.parse(input);
     a = await tx.announcement.create({ data: { title: v.title, content: v.content, type: v.type, isActive: v.isActive, startsAt: new Date(v.startsAt), endsAt: v.endsAt ? new Date(v.endsAt) : null, createdByUserId: admin.id } });
-} await audit(tx, admin.id, id ? 'ANNOUNCEMENT_UPDATED' : 'ANNOUNCEMENT_CREATED', 'announcement', a.id, input.reason); return announcementDto(a); }); }
+}
+    if (a.isActive) {
+        const dedupeKey = 'broadcast_batch:' + a.id + ':start';
+        await tx.job.upsert({ where: { dedupeKey }, create: { dedupeKey, type: 'broadcast_notifications', runAt: a.startsAt, payload: { announcementId: a.id, sendEmail: submission?.sendEmail ?? false } }, update: {} });
+    }
+    if (submission?.requestId) await tx.job.create({ data: { dedupeKey: 'broadcast_request:' + admin.id + ':' + submission.requestId, type: 'broadcast_request', status: 'done', payload: { announcementId: a.id, fingerprint } } });
+    await audit(tx, admin.id, id ? 'ANNOUNCEMENT_UPDATED' : 'ANNOUNCEMENT_CREATED', 'announcement', a.id, input.reason); return announcementDto(a); }); }
 export async function deleteAnnouncement(admin: User, id: string, reason: string, proof?: AdminProof) { authorize(admin, { roles: ['admin'] }); await withTransactionRetry(async (tx) => { await adminGuard(tx, admin, requireProof(proof)); if (!await tx.announcement.findUnique({ where: { id } }))
     fail(404, 'NOT_FOUND', 'Announcement not found'); await tx.announcement.update({ where: { id }, data: { deletedAt: new Date(), deletedById: admin.id } }); await audit(tx, admin.id, 'ANNOUNCEMENT_DELETED', 'announcement', id, reason); }); return { message: 'Announcement deleted' }; }

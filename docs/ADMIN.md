@@ -2,7 +2,7 @@
 
 All paths use `/api/v1`. Admin access uses the current database role, account status and active session, not a role supplied by the browser. Every write requires the configured `Origin` and `X-EPapers-Client: web`.
 
-Sensitive writes additionally require `X-EPapers-Reauth`, obtained from `POST /auth/reauth` with password and TOTP. The token lasts five minutes and is bound to that administrator and session. User changes, settings changes, lecturer approval, soft deletion and restoration require it. Roles/status/department/verification changes revoke affected sessions. Self-demotion/suspension is rejected; admin promotion requires verified email and an enrolled encrypted TOTP secret.
+Sensitive writes additionally require `X-EPapers-Reauth`, obtained by requesting an email code with `POST /auth/reauth` (password), then verifying it with `POST /auth/reauth/verify` (challengeToken and code). The token lasts five minutes and is bound to that administrator and session. User changes, settings changes, lecturer approval, soft deletion and restoration require it. Roles/status/department/verification changes revoke affected sessions. Self-demotion/suspension is rejected; admin promotion requires verified email. Admin sign-in and sensitive action confirmation use email codes; no authenticator enrollment is required.
 
 | Operation | Endpoint |
 |---|---|
@@ -30,7 +30,7 @@ CSV request:
 
 ```json
 {
-  "csv": "code,name,programCode,semester,levelYear,credits\nCOE07201,Computer Networks,BENG-COE-MAIN,1,2,4",
+  "csv": "code,name,programCode,semester,levelYear,credits\nCOE07201,Computer Networks,BENGCOE,1,2,4",
   "dryRun": true,
   "reason": "Approved curriculum import"
 }

@@ -1,7 +1,7 @@
 import { readFileSync,writeFileSync,mkdirSync,existsSync } from 'node:fs';
 import { validateContract } from './postman-contract.mjs';
 const api=JSON.parse(readFileSync('docs/openapi.yaml','utf8')),schemas=api.components.schemas;
-const defaults={baseUrl:'http://localhost:3001/api/v1',appOrigin:'https://app.example.com',allowMutations:'false',allowDestructive:'false',allowExternalActions:'false',runNegativeTests:'true',maxResponseMs:'10000',username:'',email:'',password:'',newPassword:'',fullName:'Postman Test User',adminUsername:'',adminPassword:'',adminTotp:'',lecturerUsername:'',lecturerPassword:'',emailOtp:'',resetToken:'',accessToken:'',adminAccessToken:'',lecturerAccessToken:'',reauthToken:'',departmentId:'',programId:'',moduleId:'',paperId:'',targetUserId:'',sessionId:'',notificationId:'',flagId:'',takedownId:'',moduleRequestId:'',verificationId:'',contactId:'',announcementId:'',createdDepartmentId:'',createdProgramId:'',createdModuleId:'',uploadId:'',examUploadId:'',markingSchemeUploadId:'',uploadUrl:'',downloadUrl:'',uploadKind:'exam',uploadFilename:'paper.pdf',uploadSizeBytes:'',programCode:'',csvText:'',xpGrantRequestId:'',loggedUserRole:''};
+const defaults={baseUrl:'http://localhost:3001/api/v1',appOrigin:'https://app.example.com',allowMutations:'false',allowDestructive:'false',allowExternalActions:'false',runNegativeTests:'true',maxResponseMs:'10000',username:'',email:'',password:'',newPassword:'',fullName:'Postman Test User',adminUsername:'',adminPassword:'',adminEmailOtp:'',adminLoginChallengeToken:'',adminReauthChallengeToken:'',lecturerUsername:'',lecturerPassword:'',emailOtp:'',resetToken:'',accessToken:'',adminAccessToken:'',lecturerAccessToken:'',reauthToken:'',departmentId:'',programId:'',moduleId:'',paperId:'',targetUserId:'',sessionId:'',notificationId:'',flagId:'',takedownId:'',moduleRequestId:'',verificationId:'',contactId:'',announcementId:'',createdDepartmentId:'',createdProgramId:'',createdModuleId:'',uploadId:'',examUploadId:'',markingSchemeUploadId:'',uploadUrl:'',downloadUrl:'',uploadKind:'exam',uploadFilename:'paper.pdf',uploadSizeBytes:'',programCode:'',csvText:'',xpGrantRequestId:'',loggedUserRole:''};
 const variables=new Set(Object.keys(defaults));
 const variable=name=>{variables.add(name);return '{{'+name+'}}';};
 function sample(schema,key='value'){
@@ -16,15 +16,18 @@ function sample(schema,key='value'){
  if(schema.type==='integer'||schema.type==='number')return Math.max(schema.minimum??1,(schema.exclusiveMinimum??0)+1);
  if(schema.format==='uuid')return variable(key);
  if(schema.format==='date-time')return '2026-01-01T00:00:00.000Z';
- const mapping={username:'username',usernameOrEmail:'username',email:'email',password:'password',fullName:'fullName',code:'emailOtp',totp:'adminTotp',token:'resetToken',filename:'uploadFilename'};
+ const mapping={username:'username',usernameOrEmail:'username',email:'email',password:'password',fullName:'fullName',code:'emailOtp',token:'resetToken',filename:'uploadFilename'};
  if(mapping[key])return variable(mapping[key]);
  return ({reason:'Postman isolated test',note:'Postman isolated test',title:'Postman paper',name:'Postman entry',description:'Postman test description',content:'Postman campus notice',evidence:'Appointment evidence checked by operator',subject:'Postman contact test',message:'Postman contact message',senderName:'Postman Test User',senderEmail:'{{email}}',requesterFullName:'Postman Test User',requesterEmail:'{{email}}',affiliation:'DIT',moduleCode:'PMTEST01',moduleName:'Postman Test Module',academicYear:2026,awardTitle:'Bachelor degree',csv:'{{csvText}}'})[key]||'Postman sample';
 }
 function bodyFor(path,method,schema){
  const body=sample(schema);
- if(path==='/auth/admin/login')return {usernameOrEmail:variable('adminUsername'),password:variable('adminPassword'),totp:variable('adminTotp')};
- if(path==='/auth/reauth')return {password:variable('adminPassword'),totp:variable('adminTotp')};
+ if(path==='/auth/admin/login')return {usernameOrEmail:variable('adminUsername'),password:variable('adminPassword')};
+ if(path==='/auth/admin/verify-login')return {challengeToken:variable('adminLoginChallengeToken'),code:variable('adminEmailOtp')};
+ if(path==='/auth/reauth/verify')return {challengeToken:variable('adminReauthChallengeToken'),code:variable('adminEmailOtp')};
+ if(path==='/auth/reauth')return {password:variable('adminPassword')};
  if(path==='/auth/reset-password')body.password=variable('newPassword');
+ if(path==='/auth/change-password')return {currentPassword:variable('password'),password:variable('newPassword')};
  if(path==='/users/me')return {bio:'Postman profile test'};
  if(path==='/uploads/presign')return {filename:variable('uploadFilename'),contentType:'application/pdf',sizeBytes:'__UPLOAD_SIZE_NUMBER__'};
  if(path==='/papers'||path==='/papers/duplicate-check'){body.academicYear=2026;body.semester=1;body.category='UE';}
@@ -65,6 +68,7 @@ if(json){
  if(pm.response.code===200&&expected===200){
   const d=json.data,save=(key,value)=>{if(value!==undefined&&value!==null)pm.environment.set(key,value);};
   if(d.accessToken&&d.user){save(d.user.role==='admin'?'adminAccessToken':'accessToken',d.accessToken);if(d.user.role==='lecturer')save('lecturerAccessToken',d.accessToken);if(d.user.role!=='admin')save('loggedUserRole',d.user.role);}
+  if(d.verificationRequired&&d.challengeToken)save(pm.request.url.toString().includes('/reauth')?'adminReauthChallengeToken':'adminLoginChallengeToken',d.challengeToken);
   if(d.reauthToken)save('reauthToken',d.reauthToken);
   const capture=pm.variables.get('_capture');if(capture){const value=Array.isArray(d.items)?d.items[0]?.id:d.id;if(!pm.environment.get(capture)||pm.variables.get('_overwriteCapture')==='true')save(capture,value);}
   if(d.uploadId){save('uploadId',d.uploadId);save(pm.variables.get('uploadKind')==='marking_scheme'?'markingSchemeUploadId':'examUploadId',d.uploadId);save('uploadUrl',d.uploadUrl);save('uploadExpiresAt',d.expiresAt);}
@@ -73,11 +77,11 @@ if(json){
 }
 `;
 const folders=new Map();const group=name=>{if(!folders.has(name))folders.set(name,{name,item:[]});return folders.get(name).item;};
-function folder(path,method){if(path==='/papers'&&method==='post')return '04 Upload workflow';if(path.startsWith('/auth/'))return path.startsWith('/auth/admin')||path==='/auth/reauth'?'02 Admin authentication':/^\/auth\/(logout|sessions)/.test(path)?'90 Sessions and logout':'01 User authentication';if(path.startsWith('/admin/'))return '06 Admin operations';if(path.startsWith('/users/me')||path.startsWith('/notifications')||path==='/leaderboard')return '03 Private account and leaderboard';if(path.startsWith('/uploads')||path==='/papers/duplicate-check')return '04 Upload workflow';if(path.startsWith('/lecturer'))return '08 Lecturer verification';if(['/flags','/takedowns','/contact-messages','/module-requests'].includes(path))return '07 Reports and contact';return '00 Public catalog';}
+function folder(path,method){if(path==='/papers'&&method==='post')return '04 Upload workflow';if(path.startsWith('/auth/'))return path.startsWith('/auth/admin')||path.startsWith('/auth/reauth')?'02 Admin authentication':/^\/auth\/(logout|sessions)/.test(path)?'90 Sessions and logout':'01 User authentication';if(path.startsWith('/admin/'))return '06 Admin operations';if(path.startsWith('/users/me')||path.startsWith('/notifications')||path==='/leaderboard')return '03 Private account and leaderboard';if(path.startsWith('/uploads')||path==='/papers/duplicate-check')return '04 Upload workflow';if(path.startsWith('/lecturer'))return '08 Lecturer verification';if(['/flags','/takedowns','/contact-messages','/module-requests'].includes(path))return '07 Reports and contact';return '00 Public catalog';}
 function create(path,method,operation,options={}){
  const output=operation.responses?.['200']?.content?.['application/json']?.schema?.properties?.data?.$ref?.split('/').at(-1);
  const protectedRoute=operation.security?.length>0&&!operation.security.some(s=>Object.keys(s).length===0)&&operation.security.some(s=>s.bearerAuth);
- const admin=path.startsWith('/admin/')||path==='/auth/reauth',token=admin?'adminAccessToken':path.startsWith('/lecturer/')?'lecturerAccessToken':'accessToken';
+ const admin=path.startsWith('/admin/')||path.startsWith('/auth/reauth'),token=admin?'adminAccessToken':path.startsWith('/lecturer/')?'lecturerAccessToken':'accessToken';
  let url=variable('baseUrl')+path.replace(/\{(\w+)\}/g,(_,name)=>variable(idFor(path,method,name)));
  const query=(operation.parameters||[]).filter(p=>p.in==='query').map(p=>({key:p.name,value:p.name==='limit'?'25':String(p.schema.default??sample(p.schema,p.name)),disabled:!p.required&&p.name!=='limit'}));
  const headers=[{key:'Accept',value:'application/json'}];if(method==='get')headers.push({key:'Origin',value:variable('appOrigin')});if(method!=='get')headers.push({key:'Content-Type',value:'application/json'},{key:'Origin',value:variable('appOrigin')},{key:'X-EPapers-Client',value:'web'});
@@ -87,8 +91,8 @@ function create(path,method,operation,options={}){
  let raw=JSON.stringify(body,null,2).replace('"__UPLOAD_SIZE_NUMBER__"','{{uploadSizeBytes}}');
  const request={method:method.toUpperCase(),header:headers,auth:protectedRoute?{type:'bearer',bearer:[{key:'token',value:variable(token),type:'string'}]}:{type:'noauth'},url:{raw:url+(query.filter(p=>!p.disabled).length?'?'+query.filter(p=>!p.disabled).map(p=>p.key+'='+p.value).join('&'):''),host:[variable('baseUrl')],path:url.slice('{{baseUrl}}/'.length).split('/'),query},description:(operation.description||'')+'\nSee docs/POSTMAN.md. Expected success: 200. Supply IDs from an isolated test setup; skipped requests are not passed tests.',...(method==='get'?{}:{body:{mode:'raw',raw,options:{raw:{language:'json'}}}})};
  const readOnly=method==='get'||['/auth/login','/auth/admin/login','/auth/reauth','/auth/username-availability'].includes(path);
- const destructive=method==='delete'||path.includes('/logout')||path==='/auth/reset-password'||path==='/auth/refresh'||path.endsWith('/restore');
- const external=['/auth/register','/auth/forgot-password','/auth/reset-password','/auth/verify-email','/auth/verify-otp','/auth/resend-otp','/auth/verification/resend','/uploads/presign','/papers','/flags','/takedowns','/contact-messages'].includes(path)||path.endsWith('/review');
+ const destructive=method==='delete'||path.includes('/logout')||path==='/auth/reset-password'||path==='/auth/change-password'||path==='/auth/refresh'||path.endsWith('/restore');
+ const external=['/auth/login','/auth/admin/login','/auth/reauth','/auth/register','/auth/forgot-password','/auth/reset-password','/auth/verify-email','/auth/verify-otp','/auth/resend-otp','/auth/verification/resend','/uploads/presign','/papers','/flags','/takedowns','/contact-messages'].includes(path)||path.endsWith('/review');
  let capture=method==='get'?({'/departments':'departmentId','/programs':'programId','/modules':'moduleId','/papers':'paperId','/notifications':'notificationId'})[path]:({'/admin/departments':'createdDepartmentId','/admin/programs':'createdProgramId','/admin/modules':'createdModuleId','/papers':'paperId','/flags':'flagId','/takedowns':'takedownId','/module-requests':'moduleRequestId','/contact-messages':'contactId','/lecturer/verifications':'verificationId','/admin/announcements':'announcementId'})[path];
  const privacy=method==='get'&&(/^\/(departments|programs|modules|papers)(\/|$)/.test(path)||path.startsWith('/users/by-username'));
  const refs=[...JSON.stringify({...request,body:undefined}).matchAll(/\{\{(\w+)\}\}/g)].map(m=>m[1]);
@@ -132,7 +136,7 @@ if(existsSync('docs/POSTMAN.md')){
  const marker='<!-- GENERATED OPERATIONS -->';const prefix=readFileSync('docs/POSTMAN.md','utf8').split(marker)[0];
  const rows=Object.entries(api.paths).flatMap(([path,methods])=>Object.entries(methods).map(([method,op])=>{
   const ref=op.requestBody?.content?.['application/json']?.schema?.$ref?.split('/').at(-1);const required=ref?schemas[ref].required||[]:[];
-  const access=path.startsWith('/admin/')?'Admin bearer':path==='/auth/reauth'?'Admin bearer':path.startsWith('/lecturer/')?'Lecturer bearer':op.security?.some(s=>s.refreshCookie)?'Refresh cookie':op.security?.some(s=>s.bearerAuth)&&!op.security.some(s=>Object.keys(s).length===0)?'User bearer':'Public / optional bearer';
+  const access=path.startsWith('/admin/')?'Admin bearer':path.startsWith('/auth/reauth')?'Admin bearer':path.startsWith('/lecturer/')?'Lecturer bearer':op.security?.some(s=>s.refreshCookie)?'Refresh cookie':op.security?.some(s=>s.bearerAuth)&&!op.security.some(s=>Object.keys(s).length===0)?'User bearer':'Public / optional bearer';
   return '| '+method.toUpperCase()+' | '+path+' | '+access+' | '+(op.parameters?.some(p=>p.name==='X-EPapers-Reauth')?'Yes':'?')+' | '+(required.join(', ')||'{} / query only')+' |';
  }));writeFileSync('docs/POSTMAN.md',prefix+marker+'\n\n## Complete operation reference\n\nAll success requests expect HTTP 200. The collection includes strict request examples and tests for each operation. Required path/query parameters are shown in each request; this table lists required JSON fields. Optional fields and enums are defined in OpenAPI.\n\n| Method | Path (after /api/v1) | Authentication | Reauth | Required body fields |\n|---|---|---|---|---|\n'+rows.join('\n')+'\n');
 }

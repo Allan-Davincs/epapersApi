@@ -2,13 +2,20 @@
   "name": "epapers-api",
   "version": "1.0.0",
   "private": true,
+  "engines": {
+    "node": "24.x"
+  },
   "scripts": {
     "dev": "next dev -p 3001",
     "build": "prisma generate && next build",
     "start": "next start -p 3001",
+    "start:heroku": "node scripts/start-heroku.mjs",
+    "worker:heroku": "node --use-system-ca --conditions=react-server --import tsx worker/index.ts",
+    "heroku:config": "node scripts/heroku-config.mjs",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "db:generate": "prisma generate",
+    "db:verify": "node --env-file=.env --conditions=react-server --import tsx scripts/probe-database.ts",
     "db:migrate": "prisma migrate deploy",
     "db:seed": "node --conditions=react-server --import tsx prisma/seed.ts",
     "worker": "node --use-system-ca --env-file=.env --conditions=react-server --import tsx worker/index.ts",

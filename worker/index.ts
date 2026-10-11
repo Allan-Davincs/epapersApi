@@ -10,15 +10,20 @@ import { storage } from '../src/lib/storage';
 import { z } from 'zod';
 import { verifyXpLedger } from './maintenance';
 import { purgeExpiredPapers,expireSecurityRecords } from './retention';
-const types = ['email_otp', 'email', 'email_notice', 'scan_file', 'delete_file', 'delete_object', 'finalize_approval', 'review_effects'];
-const payloadSchema = z.object({ fileId: z.string().uuid().optional(), paperId: z.string().uuid().optional(), reviewId: z.string().uuid().optional(), bucket: z.string().optional(), key: z.string().optional(), encrypted: z.string().optional() });
+import { deliverBroadcast, reserveBroadcastSlot } from './broadcast';
+import { reserveDailyEmail } from './email-limits';
+const types = ['email_otp', 'email', 'email_notice', 'email_broadcast', 'broadcast_notifications', 'scan_file', 'delete_file', 'delete_object', 'finalize_approval', 'review_effects'];
+const payloadSchema = z.object({ fileId: z.string().uuid().optional(), paperId: z.string().uuid().optional(), reviewId: z.string().uuid().optional(), bucket: z.string().optional(), key: z.string().optional(), encrypted: z.string().optional(), announcementId: z.string().uuid().optional(), userId: z.string().uuid().optional(), sendEmail: z.boolean().optional(), cursor: z.string().uuid().optional() });
 let stopping = false, lastMaintenance = 0, lastCleanup = 0, lastXpDay = '';
 process.on('SIGTERM', () => { stopping = true; });
 process.on('SIGINT', () => { stopping = true; });
 export async function tick() {
     const token = randomUUID();
     const job = await withTransactionRetry(async (tx) => {
-        const candidate = await tx.job.findFirst({ where: { type: 'email_otp', runAt: { lte: new Date() }, status: 'pending' }, orderBy: { runAt: 'asc' } }) || await tx.job.findFirst({ where: { type: { in: types }, runAt: { lte: new Date() }, status: 'pending' }, orderBy: { runAt: 'asc' } });
+        const candidate = await tx.job.findFirst({ where: { type: 'email_otp', runAt: { lte: new Date() }, status: 'pending' }, orderBy: { runAt: 'asc' } })
+            || await tx.job.findFirst({ where: { type: { in: ['email', 'email_notice'] }, runAt: { lte: new Date() }, status: 'pending' }, orderBy: { runAt: 'asc' } })
+            || await tx.job.findFirst({ where: { type: 'broadcast_notifications', runAt: { lte: new Date() }, status: 'pending' }, orderBy: { runAt: 'asc' } })
+            || await tx.job.findFirst({ where: { type: { in: types }, runAt: { lte: new Date() }, status: 'pending' }, orderBy: { runAt: 'asc' } });
         if (!candidate)
             return null;
         const claim = await tx.job.updateMany({ where: { id: candidate.id, status: 'pending' }, data: { status: 'running', leaseToken: token, runAt: new Date(Date.now() + 300000), attempts: { increment: 1 } } });
@@ -28,17 +33,30 @@ export async function tick() {
         return;
     try {
         const p = payloadSchema.parse(job.payload);
+        if (job.type === 'email_broadcast') {
+            const announcement = await db.announcement.findUnique({ where: { id: p.announcementId! } });
+            const recipient = await db.user.findFirst({ where: { id: p.userId!, role: 'CONTRIBUTOR', status: 'ACTIVE', deletedAt: null, emailVerifiedAt: { not: null } } });
+            const message = decrypt<EmailMessage>(p.encrypted!, 'email');
+            if (!announcement || !announcement.isActive || announcement.deletedAt || (announcement.endsAt && announcement.endsAt <= new Date()) || !recipient || recipient.emailNormalized !== message.to.toLowerCase()) {
+                await withTransactionRetry(tx => tx.job.updateMany({ where: { id: job.id, leaseToken: token }, data: { status: 'expired', leaseToken: null } }));
+                return;
+            }
+            const retryAt = await reserveBroadcastSlot(recipient.id);
+            if (retryAt) {
+                await withTransactionRetry(tx => tx.job.updateMany({ where: { id: job.id, leaseToken: token }, data: { status: 'pending', leaseToken: null, attempts: { decrement: 1 }, runAt: retryAt } }));
+                return;
+            }
+        }
         if (job.type.startsWith('email')) {
             if (env.EMAIL_PROVIDER === 'smtp') {
-                const allowed = await withTransactionRetry(async (tx) => { const rows = await tx.$queryRaw<Array<{
-                    sent: bigint;
-                }>> `INSERT INTO email_daily_counters(day,sent) VALUES(current_date,1) ON CONFLICT(day) DO UPDATE SET sent=email_daily_counters.sent+1 RETURNING sent`; return Number(rows[0].sent) <= env.SMTP_DAILY_LIMIT; });
+                // Keep twenty percent of the SMTP budget available to authentication and transactional mail.
+                const allowed = await reserveDailyEmail(job.type === 'email_broadcast' ? Math.max(1, Math.floor(env.SMTP_DAILY_LIMIT * .8)) : env.SMTP_DAILY_LIMIT);
                 if (!allowed) {
-                    await withTransactionRetry(tx => tx.job.updateMany({ where: { id: job.id, leaseToken: token }, data: { status: 'pending', leaseToken: null, runAt: new Date(Date.now() + 3600000) } }));
+                    await withTransactionRetry(tx => tx.job.updateMany({ where: { id: job.id, leaseToken: token }, data: { status: 'pending', leaseToken: null, attempts: { decrement: 1 }, runAt: new Date(Date.now() + 3600000) } }));
                     return;
                 }
             }
-            const expired = job.type !== 'email_notice' && Date.now() - job.createdAt.getTime() > (job.type === 'email_otp' ? 600000 : 1800000);
+            const expired = !['email_notice', 'email_broadcast'].includes(job.type) && Date.now() - job.createdAt.getTime() > (job.type === 'email_otp' ? 600000 : 1800000);
             if (!expired) {
                 const message=decrypt<EmailMessage>(p.encrypted!, 'email');
                 const recipient=await db.user.findFirst({where:{emailNormalized:message.to.toLowerCase(),status:'ACTIVE'}});
@@ -46,6 +64,13 @@ export async function tick() {
             }
             if (expired) {
                 await withTransactionRetry(tx => tx.job.updateMany({ where: { id: job.id, leaseToken: token }, data: { status: 'expired', leaseToken: null } }));
+                return;
+            }
+        }
+        else if (job.type === 'broadcast_notifications') {
+            const retryAt = await deliverBroadcast(p.announcementId!, p.sendEmail ?? false, p.cursor);
+            if (retryAt) {
+                await withTransactionRetry(tx => tx.job.updateMany({ where: { id: job.id, leaseToken: token }, data: { status: 'pending', leaseToken: null, attempts: { decrement: 1 }, runAt: retryAt } }));
                 return;
             }
         }

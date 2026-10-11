@@ -20,13 +20,25 @@
       "type": "secret"
     },
     {
+      "key": "adminEmailOtp",
+      "value": "",
+      "enabled": true,
+      "type": "secret"
+    },
+    {
+      "key": "adminLoginChallengeToken",
+      "value": "",
+      "enabled": true,
+      "type": "secret"
+    },
+    {
       "key": "adminPassword",
       "value": "",
       "enabled": true,
       "type": "secret"
     },
     {
-      "key": "adminTotp",
+      "key": "adminReauthChallengeToken",
       "value": "",
       "enabled": true,
       "type": "secret"

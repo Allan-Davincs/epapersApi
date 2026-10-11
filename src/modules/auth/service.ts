@@ -1,13 +1,13 @@
 import 'server-only';
-import { encrypt, decrypt } from '../../lib/encryption';
+import { encrypt } from '../../lib/encryption';
 import { randomUUID } from 'node:crypto';
 import type { User } from '@prisma/client';
 import { db, withTransactionRetry, type TransactionClient } from '../../lib/db';
 import { fail } from '../../lib/errors';
-import { hashPassword, verifyPassword, opaqueToken, tokenHash, otp, verifyTotp } from '../../lib/crypto';
+import { hashPassword, verifyPassword, opaqueToken, tokenHash, otp } from '../../lib/crypto';
 import { signAccess, verifyAccess, signReauthentication } from '../../lib/jwt';
 import { rateLimit } from '../../lib/rate-limit';
-import { otpEmail, resetEmail } from '../../lib/email/templates';
+import { otpEmail, resetEmail, adminCodeEmail } from '../../lib/email/templates';
 import { privateUser } from './dto';
 import { audit, challenge } from './repository';
 const generic = { message: 'If eligible, an email will be sent. Delivery may be delayed.' };
@@ -26,7 +26,6 @@ export async function register(input: {
     email: string;
     password: string;
     fullName: string;
-    role?: 'contributor' | 'lecturer';
 }) {
     await rateLimit('register-email:' + tokenHash(input.email), 5, 3600);
     const passwordHash = await hashPassword(input.password);
@@ -44,7 +43,7 @@ export async function register(input: {
         }>> `SELECT username_normalized FROM username_registry WHERE username_normalized=${input.username.toLowerCase()}`;
         if (reserved.length)
             fail(409, 'USERNAME_TAKEN', 'Username is unavailable');
-        const user = await tx.user.create({ data: { username: input.username, usernameNormalized: input.username.toLowerCase(), email: input.email, emailNormalized: input.email, fullName: input.fullName, passwordHash, role: input.role === 'lecturer' ? 'LECTURER' : 'CONTRIBUTOR' } });
+        const user = await tx.user.create({ data: { username: input.username, usernameNormalized: input.username.toLowerCase(), email: input.email, emailNormalized: input.email, fullName: input.fullName, passwordHash, role: 'CONTRIBUTOR' } });
         await tx.$executeRaw `INSERT INTO username_registry(username_normalized,user_id) VALUES (${user.usernameNormalized},${user.id}::UUID)`;
         await newChallenge(tx, user, 'otp');
         await audit(tx, user.id, 'REGISTER');
@@ -88,27 +87,24 @@ export async function verifyOtp(email: string, code: string) {
 }
 async function issueSession(tx: TransactionClient, user: User, familyId: string = randomUUID()) {
     const refreshToken = opaqueToken();
-    const session = await tx.userSession.create({ data: { userId: user.id, familyId, refreshTokenHash: tokenHash(refreshToken), expiresAt: new Date(Date.now() + (user.role === 'ADMIN' ? 3600000 : 30 * 86400000)) } });
+    const session = await tx.userSession.create({ data: { userId: user.id, familyId, refreshTokenHash: tokenHash(refreshToken), adminEmailVerifiedAt: user.role === 'ADMIN' ? new Date() : null, expiresAt: new Date(Date.now() + (user.role === 'ADMIN' ? 3600000 : 30 * 86400000)) } });
     return { session, refreshToken };
 }
-export async function login(usernameOrEmail: string, password: string, totp?: string) {
+export async function login(usernameOrEmail: string, password: string, adminOnly = false) {
     const email = usernameOrEmail.toLowerCase();
     await rateLimit('login-email:' + tokenHash(email), 10, 900);
     const user = await db.user.findFirst({ where: { OR: [{ emailNormalized: email }, { usernameNormalized: email }] } });
     if (user)
         await rateLimit('login-account:' + user.id, 10, 900);
     // Burn the same Argon2 work for unknown accounts to reduce account enumeration.
-    const ok = user ? await verifyPassword(user.passwordHash, password) : (await hashPassword(opaqueToken()), false);
+    const ok = user ? await verifyPassword(user.passwordHash, password) : (await hashPassword(opaqueToken() + 'A1'), false);
     if (!ok)
         fail(401, 'INVALID_CREDENTIALS', 'Invalid credentials');
     active(user);
-    if (user.role === 'ADMIN') {
-        if (!totp || !user.totpSecret || !verifyTotp(decrypt<string>(user.totpSecret, 'totp'), totp))
-            fail(401, 'INVALID_CREDENTIALS', 'Invalid credentials');
-    }
-    else if (totp !== undefined)
+    if (adminOnly && user.role !== 'ADMIN')
         fail(403, 'FORBIDDEN', 'Admin account required');
-    const issued = await withTransactionRetry(async (tx) => { await lockUser(tx, user.id); const current = await tx.user.findUnique({ where: { id: user.id } }); active(current); if (current.passwordHash !== user.passwordHash || current.role !== user.role || current.totpSecret !== user.totpSecret)
+    if (user.role === 'ADMIN') return startAdminChallenge(user, 'login');
+    const issued = await withTransactionRetry(async (tx) => { await lockUser(tx, user.id); const current = await tx.user.findUnique({ where: { id: user.id } }); active(current); if (current.passwordHash !== user.passwordHash || current.role !== user.role)
         fail(401, 'INVALID_CREDENTIALS', 'Please log in again'); return issueSession(tx, current); });
     return { refreshToken: issued.refreshToken, session: { id: issued.session.id, expiresAt: issued.session.expiresAt }, accessToken: await signAccess(user, issued.session.id), user: privateUser(user) };
 }
@@ -130,6 +126,11 @@ export async function refresh(token: string) {
         const user = await tx.user.findUnique({ where: { id: current.userId } });
         if (!user || user.deletedAt || user.status !== 'ACTIVE') {
             await tx.userSession.updateMany({ where: { userId: current.userId }, data: { revokedAt: new Date() } });
+            return null;
+        }
+        // Manual promotion must not turn an existing contributor refresh cookie into an admin session.
+        if (user.role === 'ADMIN' && !current.adminEmailVerifiedAt) {
+            await tx.userSession.updateMany({ where: { familyId: current.familyId }, data: { revokedAt: new Date() } });
             return null;
         }
         await tx.userSession.update({ where: { id: current.id }, data: { rotatedAt: new Date(), revokedAt: new Date() } });
@@ -157,6 +158,8 @@ export async function authenticate(token: string) {
     if (!session || session.revokedAt || session.rotatedAt || session.expiresAt <= new Date() || session.userId !== claims.sub)
         fail(401, 'UNAUTHORIZED', 'Authentication required');
     active(session.user);
+    if (session.user.role === 'ADMIN' && !session.adminEmailVerifiedAt)
+        fail(401, 'UNAUTHORIZED', 'Verify your administrator sign-in by email');
     if (session.user.role.toLowerCase() !== claims.role)
         fail(401, 'UNAUTHORIZED', 'Please log in again');
     return { user: session.user, session };
@@ -188,6 +191,27 @@ export async function resetPassword(token: string, password: string) {
     if (!ok)
         fail(422, 'INVALID_TOKEN', 'Reset link is invalid or expired');
     return { message: 'Password reset' };
+}
+export async function changePassword(userId: string, sessionId: string, currentPassword: string, password: string) {
+    await rateLimit('change-password:' + userId, 5, 900);
+    const passwordHash = await hashPassword(password);
+    await withTransactionRetry(async (tx) => {
+        await lockUser(tx, userId);
+        const user = await tx.user.findUnique({ where: { id: userId } });
+        active(user);
+        const session = await tx.userSession.findFirst({ where: { id: sessionId, userId, revokedAt: null, expiresAt: { gt: new Date() } } });
+        if (!session) fail(401, 'UNAUTHORIZED', 'Please sign in again');
+        if (!(await verifyPassword(user.passwordHash, currentPassword)))
+            fail(422, 'INVALID_PASSWORD', 'Current password is incorrect.');
+        if (currentPassword === password)
+            fail(422, 'UNCHANGED_PASSWORD', 'Choose a new password different from your current password.');
+        await tx.user.update({ where: { id: userId }, data: { passwordHash } });
+        await tx.userSession.updateMany({ where: { userId, revokedAt: null }, data: { revokedAt: new Date() } });
+        await tx.$executeRaw `UPDATE auth_challenges SET consumed_at=now() WHERE user_id=${userId}::UUID AND consumed_at IS NULL`;
+        await tx.$executeRaw `UPDATE admin_auth_challenges SET consumed_at=now() WHERE user_id=${userId}::UUID AND consumed_at IS NULL`;
+        await audit(tx, userId, 'PASSWORD_CHANGED');
+    });
+    return { message: 'Password changed. Please sign in again.' };
 }
 export async function availability(username: string) { const rows = await db.$queryRaw<Array<{
     username_normalized: string;
@@ -242,12 +266,83 @@ export function authorize(user: User, options: {
     if (options.scope && user.role !== 'ADMIN' && (user.role !== 'LECTURER' || !user.lecturerVerifiedAt || user.homeDepartmentId !== options.scope.departmentId))
         fail(403, 'FORBIDDEN', 'Department access denied');
 }
-export async function reauthenticate(userId: string, sid: string, password: string, totp: string) {
+export async function reauthenticate(userId: string, sid: string, password: string) {
     const user = await db.user.findUnique({ where: { id: userId } });
     active(user);
-    if (user.role !== 'ADMIN' || !user.totpSecret || !(await verifyPassword(user.passwordHash, password)) || !verifyTotp(decrypt<string>(user.totpSecret, 'totp'), totp))
+    if (user.role !== 'ADMIN' || !(await verifyPassword(user.passwordHash, password)))
         fail(401, 'INVALID_CREDENTIALS', 'Invalid credentials');
-    await withTransactionRetry(async (tx) => { await lockUser(tx, userId); const current = await tx.user.findUnique({ where: { id: userId } }); active(current); const session = await tx.userSession.findFirst({ where: { id: sid, userId, revokedAt: null, rotatedAt: null, expiresAt: { gt: new Date() } } }); if (!session || current.role !== 'ADMIN' || current.passwordHash !== user.passwordHash || current.totpSecret !== user.totpSecret)
-        fail(401, 'UNAUTHORIZED', 'Please log in again'); await audit(tx, userId, 'ADMIN_REAUTH'); });
-    return { reauthToken: await signReauthentication(userId, sid) };
+    return startAdminChallenge(user, 'reauth', sid);
+}
+
+export type AdminChallenge = {
+    verificationRequired: true;
+    challengeToken: string;
+    expiresAt: string;
+    resendAfter: string;
+    message: string;
+};
+type AdminChallengeRow = {
+    id: string; user_id: string; kind: string; session_id: string | null;
+    code_hash: string; credential_hash: string; attempts: number | bigint;
+    expires_at: Date; consumed_at: Date | null; created_at: Date;
+};
+const adminCredentialHash = (user: User) => tokenHash(user.passwordHash + '|' + user.emailNormalized);
+
+async function startAdminChallenge(user: User, kind: 'login' | 'reauth', sid?: string): Promise<AdminChallenge> {
+    await rateLimit(`admin-${kind}-email:${user.id}`, 5, 3600);
+    const challengeToken = opaqueToken(), code = otp();
+    const expiresAt = new Date(Date.now() + 600000), resendAfter = new Date(Date.now() + 60000);
+    await withTransactionRetry(async tx => {
+        await lockUser(tx, user.id);
+        const current = await tx.user.findUnique({ where: { id: user.id } });
+        active(current);
+        if (current.role !== 'ADMIN' || adminCredentialHash(current) !== adminCredentialHash(user))
+            fail(401, 'INVALID_CREDENTIALS', 'Please sign in again');
+        if (sid && !await tx.userSession.findFirst({ where: { id: sid, userId: user.id, revokedAt: null, rotatedAt: null, expiresAt: { gt: new Date() } } }))
+            fail(401, 'UNAUTHORIZED', 'Please sign in again');
+        const previous = await tx.$queryRaw<AdminChallengeRow[]>`SELECT * FROM admin_auth_challenges WHERE user_id=${user.id}::UUID AND kind=${kind} ORDER BY created_at DESC LIMIT 1`;
+        if (previous[0] && !previous[0].consumed_at && Date.now() - previous[0].created_at.getTime() < 60000)
+            fail(429, 'CODE_COOLDOWN', 'Wait 60 seconds before requesting another code');
+        await tx.$executeRaw`UPDATE admin_auth_challenges SET consumed_at=now() WHERE user_id=${user.id}::UUID AND kind=${kind} AND consumed_at IS NULL`;
+        await tx.$executeRaw`INSERT INTO admin_auth_challenges(user_id,kind,session_id,challenge_hash,code_hash,credential_hash,expires_at) VALUES (${user.id}::UUID,${kind},${sid ?? null}::UUID,${tokenHash(challengeToken)},${tokenHash(challengeToken + ':' + code)},${adminCredentialHash(current)},${expiresAt})`;
+        await enqueue(tx, adminCodeEmail(current.email, code, kind), true);
+        await audit(tx, user.id, kind === 'login' ? 'ADMIN_LOGIN_CODE_SENT' : 'ADMIN_REAUTH_CODE_SENT');
+    });
+    return { verificationRequired: true, challengeToken, expiresAt: expiresAt.toISOString(), resendAfter: resendAfter.toISOString(), message: 'Enter the six-digit code sent to your account email.' };
+}
+
+async function consumeAdminChallenge<T>(challengeToken: string, code: string, kind: 'login' | 'reauth', action: (tx: TransactionClient, user: User) => Promise<T>, userId?: string, sid?: string): Promise<T> {
+    await rateLimit('admin-code:' + tokenHash(challengeToken), 10, 600);
+    const result = await withTransactionRetry(async tx => {
+        const rows = await tx.$queryRaw<AdminChallengeRow[]>`SELECT * FROM admin_auth_challenges WHERE challenge_hash=${tokenHash(challengeToken)} LIMIT 1`;
+        const initial = rows[0];
+        if (!initial || initial.kind !== kind || (userId && initial.user_id !== userId) || (sid && initial.session_id !== sid)) return null;
+        await lockUser(tx, initial.user_id);
+        const locked = await tx.$queryRaw<AdminChallengeRow[]>`SELECT * FROM admin_auth_challenges WHERE id=${initial.id}::UUID FOR UPDATE`;
+        const c = locked[0];
+        const user = await tx.user.findUnique({ where: { id: initial.user_id } });
+        if (!c || c.consumed_at || c.expires_at <= new Date() || Number(c.attempts) >= 5 || !user || user.status !== 'ACTIVE' || user.deletedAt || user.role !== 'ADMIN' || c.credential_hash !== adminCredentialHash(user)) return null;
+        if (sid && !await tx.userSession.findFirst({ where: { id: sid, userId: user.id, revokedAt: null, rotatedAt: null, expiresAt: { gt: new Date() } } })) return null;
+        // Return failure after committing the attempt, so invalid codes cannot bypass the limit.
+        await tx.$executeRaw`UPDATE admin_auth_challenges SET attempts=attempts+1 WHERE id=${c.id}::UUID`;
+        if (c.code_hash !== tokenHash(challengeToken + ':' + code)) return null;
+        await tx.$executeRaw`UPDATE admin_auth_challenges SET consumed_at=now() WHERE id=${c.id}::UUID`;
+        return { value: await action(tx, user) };
+    });
+    if (!result) fail(422, 'INVALID_CODE', 'Code is invalid or expired. Request a new code to try again.');
+    return result.value;
+}
+
+export function verifyAdminLogin(challengeToken: string, code: string) {
+    return consumeAdminChallenge(challengeToken, code, 'login', async (tx, user) => {
+        const issued = await issueSession(tx, user);
+        await audit(tx, user.id, 'ADMIN_LOGIN');
+        return { refreshToken: issued.refreshToken, session: { id: issued.session.id, expiresAt: issued.session.expiresAt }, accessToken: await signAccess(user, issued.session.id), user: privateUser(user) };
+    });
+}
+export function verifyAdminReauthentication(userId: string, sid: string, challengeToken: string, code: string) {
+    return consumeAdminChallenge(challengeToken, code, 'reauth', async (tx, user) => {
+        await audit(tx, user.id, 'ADMIN_REAUTH');
+        return { reauthToken: await signReauthentication(user.id, sid) };
+    }, userId, sid);
 }

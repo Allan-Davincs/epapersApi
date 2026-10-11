@@ -43,7 +43,7 @@ describe('JWT replaces CAPTCHA on reporting and contact routes', () => {
         });
     }
     it('registration and password recovery schemas need no challenge token', () => {
-        expect(schemas.register.safeParse({ username: 'test_user', email: 'test@example.com', password: 'Unique test password!', fullName: 'Test User' }).success).toBe(true);
+        expect(schemas.register.safeParse({ username: 'test_user', email: 'test@example.com', password: 'Unique test password1!', fullName: 'Test User' }).success).toBe(true);
         expect(schemas.forgot.safeParse({ email: 'test@example.com' }).success).toBe(true);
     });
 });

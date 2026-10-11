@@ -3,6 +3,7 @@
 !.env.example
 node_modules/
 .next/
+.next-connection-test/
 out/
 coverage/
 dist/
@@ -15,3 +16,11 @@ backend.md
 *.tsbuildinfo
 .npm-cache/
 postman.json
+
+# Local Heroku credentials, config exports, and deployment records
+.heroku/
+.netrc
+_netrc
+heroku.local.*
+heroku-config*.json
+deploy/heroku.local.*
