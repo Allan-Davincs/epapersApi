@@ -22,7 +22,7 @@ export const responseSchemas = {
     duplicateWarning: z.strictObject({ duplicateWarning: z.boolean() }),
     paperCreated: z.strictObject({ id: uuid, status: statuses, duplicateWarning: z.boolean(), levelTitle: z.string() }),
     downloadUrl: z.strictObject({ url: z.string().url(), expiresAt: time, filename: z.string() }),
-    ownPaperPage: page(z.strictObject({ id: uuid, title: z.string(), status: statuses, rejectionReason: z.string().nullable(), duplicateWarning: z.boolean(), levelTitle: z.string(), createdAt: time })),
+    ownPaperPage: page(paper.extend({ status: statuses, rejectionReason: z.string().nullable(), duplicateWarning: z.boolean(), levelTitle: z.string() })),
     reviewResult: z.strictObject({ id: uuid, status: statuses, levelTitle: z.string() }), receipt,
     adminPaperPage: page(paper.extend({ status: statuses, rejectionReason: z.string().nullable(), duplicateWarning: z.boolean(), scanStatus: z.enum(['pending', 'clean', 'rejected']) })),
     adminPaper: paper.extend({ status: statuses, duplicateWarning: z.boolean(), rejectionReason: z.string().nullable(), uploads: z.strictObject({ exam: z.strictObject({ id: uuid, scanStatus: z.string() }), markingScheme: z.strictObject({ id: uuid, scanStatus: z.string() }).nullable() }), reviews: z.array(z.strictObject({ id: uuid, action: z.string(), reason: z.string(), createdAt: time })) }),

@@ -11,6 +11,7 @@ import { authorize } from '../auth/service';
 import { activeModule, publicPaper, page, cursorId } from '../catalog/service';
 import { uploadSchemas } from './schemas';
 import { levelTitleForXp } from '../../lib/levels';
+import { paperDto, paperInclude } from '../catalog/dto';
 function uploader(user: User) { authorize(user, { roles: ['contributor', 'lecturer'], requireVerifiedEmail: true }); }
 export function validPdfEdges(first: Buffer, last: Buffer) { return /^[\t\n\r ]{0,8}%PDF-(1\.[0-7]|2\.0)(?:\s|$)/.test(first.toString('latin1')) && /%%EOF[\t\n\r ]*$/.test(last.toString('latin1')); }
 async function currentUploader(tx: TransactionClient, id: string) { await tx.$queryRaw `SELECT id FROM users WHERE id=${id}::UUID FOR UPDATE`; const u = await tx.user.findUnique({ where: { id } }); if (!u)
@@ -109,4 +110,4 @@ export async function view(id: string, hash: string) { await withTransactionRetr
 export async function myPapers(user: User, q: {
     cursor?: string;
     limit: number;
-}) { authorize(user, {}); const id = cursorId(q.cursor); return page(await db.paper.findMany({ where: { uploadedByUserId: user.id }, orderBy: { id: 'desc' }, take: q.limit + 1, ...(id ? { cursor: { id }, skip: 1 } : {}) }), q.limit, p => ({ id: p.id, title: p.title, status: p.status.toLowerCase(), rejectionReason: p.rejectionReason, duplicateWarning: p.duplicateWarning, levelTitle: levelTitleForXp(user.xp), createdAt: p.createdAt.toISOString() })); }
+}) { authorize(user, {}); const id = cursorId(q.cursor); return page(await db.paper.findMany({ where: { uploadedByUserId: user.id }, include: paperInclude, orderBy: { id: 'desc' }, take: q.limit + 1, ...(id ? { cursor: { id }, skip: 1 } : {}) }), q.limit, p => ({ ...paperDto(p), status: p.status.toLowerCase(), rejectionReason: p.rejectionReason, duplicateWarning: p.duplicateWarning, levelTitle: levelTitleForXp(user.xp) })); }
