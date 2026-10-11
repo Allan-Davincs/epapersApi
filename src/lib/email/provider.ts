@@ -10,8 +10,17 @@ export interface EmailMessage {
 export interface EmailProvider {
     send(message: EmailMessage): Promise<void>;
 }
+export function createSmtpTransport() {
+    return nodemailer.createTransport({
+        host: env.SMTP_HOST, port: env.SMTP_PORT, secure: env.SMTP_SECURE,
+        requireTLS: !env.SMTP_SECURE,
+        auth: { user: env.SMTP_USER, pass: env.SMTP_HOST === 'smtp.gmail.com' ? env.SMTP_PASSWORD?.replace(/\s/g, '') : env.SMTP_PASSWORD },
+        connectionTimeout: 10000, greetingTimeout: 10000, socketTimeout: 20000,
+        logger: false, debug: false,
+    });
+}
 export class SmtpProvider implements EmailProvider {
-    private transport = nodemailer.createTransport({ host: env.SMTP_HOST, port: env.SMTP_PORT, secure: env.SMTP_SECURE, auth: { user: env.SMTP_USER, pass: env.SMTP_PASSWORD } });
+    private transport = createSmtpTransport();
     async send(message: EmailMessage) { await this.transport.sendMail({ ...message, from: env.SMTP_FROM }); }
 }
 export class ResendProvider implements EmailProvider {
