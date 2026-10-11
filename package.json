@@ -2,16 +2,36 @@
   "name": "epapers-api",
   "version": "1.0.0",
   "private": true,
+  "engines": {
+    "node": "24.x"
+  },
   "scripts": {
-    "dev": "next dev -p ${PORT:-3001}",
+    "dev": "next dev -p 3001",
     "build": "prisma generate && next build",
-    "start": "next start -p ${PORT:-3001}",
+    "start": "next start -p 3001",
+    "start:heroku": "node scripts/start-heroku.mjs",
+    "worker:heroku": "node --use-system-ca --conditions=react-server --import tsx worker/index.ts",
+    "heroku:config": "node scripts/heroku-config.mjs",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "db:generate": "prisma generate",
+    "db:verify": "node --env-file=.env --conditions=react-server --import tsx scripts/probe-database.ts",
     "db:migrate": "prisma migrate deploy",
-    "db:seed": "tsx prisma/seed.ts",
-    "worker": "tsx worker/index.ts"
+    "db:seed": "node --conditions=react-server --import tsx prisma/seed.ts",
+    "worker": "node --use-system-ca --env-file=.env --conditions=react-server --import tsx worker/index.ts",
+    "email:verify": "node --use-system-ca --env-file=.env --conditions=react-server --import tsx scripts/probe-smtp.ts",
+    "test": "vitest run",
+    "test:db": "node --env-file=.env scripts/test-db.mjs",
+    "openapi": "node --env-file=.env --conditions=react-server --import tsx scripts/generate-openapi.ts",
+    "check:secrets": "node scripts/check-secrets.mjs",
+    "test:load": "node --env-file=.env scripts/test-operation.mjs load-test",
+    "test:restore": "node --env-file=.env scripts/test-operation.mjs restore-drill",
+    "test:indexes": "node --env-file=.env scripts/test-operation.mjs explain-indexes",
+    "test:admin": "node --env-file=.env scripts/test-operation.mjs admin-tests",
+    "test:smoke": "node --env-file=.env scripts/smoke-built.mjs",
+    "postman": "node scripts/generate-postman.mjs",
+    "postman:sync": "node scripts/sync-postman-tester.mjs",
+    "check:postman": "node scripts/check-postman.mjs"
   },
   "dependencies": {
     "@aws-sdk/client-s3": "^3.850.0",
@@ -20,21 +40,34 @@
     "argon2": "^0.41.1",
     "jose": "^6.0.12",
     "next": "^15.4.6",
-    "nodemailer": "^7.0.5",
+    "nodemailer": "^10.1.0",
     "pino": "^9.9.0",
+    "react": "^19.3.0",
+    "react-dom": "^19.3.0",
     "server-only": "^0.0.1",
     "zod": "^4.0.17"
   },
   "devDependencies": {
     "@types/node": "^22.17.2",
     "@types/nodemailer": "^6.4.17",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
     "eslint": "^9.33.0",
-    "eslint-config-next": "^15.4.6",
     "prisma": "^6.14.0",
     "tsx": "^4.20.4",
-    "typescript": "^5.9.2"
+    "typescript": "^5.9.2",
+    "vitest": "^5.0.3",
+    "@eslint/js": "^9.39.5",
+    "@typescript-eslint/parser": "^8.71.1",
+    "@typescript-eslint/eslint-plugin": "^8.71.1"
   },
   "prisma": {
-    "seed": "tsx prisma/seed.ts"
+    "seed": "node --conditions=react-server --import tsx prisma/seed.ts"
+  },
+  "overrides": {
+    "postcss": "^8.5.29",
+    "@prisma/config": {
+      "deepmerge-ts": "^8.0.2"
+    }
   }
 }

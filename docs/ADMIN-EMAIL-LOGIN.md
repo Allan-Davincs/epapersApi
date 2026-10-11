@@ -1,0 +1,15 @@
+All new accounts register as `CONTRIBUTOR`. Registration accepts username, email, fullName and password; sending a role is rejected. Operators may assign `ADMIN` or `LECTURER` in the database. Revoke that user's existing sessions after a role change. Admin accounts must have access to their registered email. No demo admin or authenticator enrollment is required.
+
+New and reset passwords require 6–128 characters, at least one ASCII letter and one number. Letters may be lowercase or uppercase, and symbols are optional. Common passwords and email addresses are rejected with a specific explanation. The frontend displays the reason below the password field after blur or an invalid submission, and displays backend rejection messages in the form. Existing passwords still work for login. The frontend offers Show/Hide and requires matching password confirmation on registration and reset.
+
+Apply `npm run db:migrate` before starting the updated API. Migrations 0008 and 0009 add `admin_auth_challenges` and a session email-verification timestamp; they do not modify existing accounts. Existing admin sessions and contributor sessions promoted to admin must sign in again and verify an email code. Keep the email worker running with `npm run worker` so encrypted email jobs are delivered through the configured Epapers SMTP sender.
+
+1. `POST /api/v1/auth/login` with `{ "usernameOrEmail": "your-account", "password": "your-password" }`. Contributors and lecturers receive the existing session response. Admins receive `verificationRequired`, `challengeToken`, `expiresAt`, `resendAfter` and `message`, without an access token or refresh cookie. `/auth/admin/login` accepts the same body but allows only admins.
+2. Enter the six-digit code from the email. `POST /api/v1/auth/admin/verify-login` with `{ "challengeToken": "token-from-step-one", "code": "123456" }` creates the admin session and refresh cookie.
+3. To resend, repeat step one after `resendAfter` (60 seconds). The new challenge replaces the previous one. Keep challenge tokens in memory and out of URLs, logs and source control.
+
+Each code expires after ten minutes, permits five verification attempts and is single-use. Changing the password, email, account status or admin role invalidates the challenge. Code issuance is limited to five per account per hour, in addition to login limits. Failed code attempts are committed to the database.
+
+Sensitive administrator actions follow the same pattern: authenticated `POST /auth/reauth` with `{ "password": "your-password" }`, then authenticated `POST /auth/reauth/verify` with the returned challengeToken and emailed code. Verification returns a five-minute `reauthToken` for `X-EPapers-Reauth`. Both the email challenge and proof are bound to the current live admin session. Request a new confirmation after login/session rotation.
+
+The Postman collection includes both steps and captures challenge tokens automatically. Enter the latest code in the local secret variable `adminEmailOtp`. No real email is sent by the unit tests; end-to-end delivery requires working SMTP and the running worker.

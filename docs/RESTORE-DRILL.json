@@ -1,0 +1,8 @@
+{
+  "timestamp": "2026-10-10T15:27:26.096Z",
+  "scope": "Synthetic logical curriculum serialization and relational insert round-trip only; not a native backup or disaster recovery test.",
+  "verified": true,
+  "elapsedMs": 2178,
+  "checksum": "2f35c3eefa93c5d611c082efd4994679609bbc8bc11d0356e6433291ab26625d",
+  "rows": 3
+}

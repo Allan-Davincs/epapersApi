@@ -1,0 +1,46 @@
+{
+  "timestamp": "2026-10-10T15:40:52.212Z",
+  "scope": "Built standalone process; configured database; no authenticated mutation, file transfer or email.",
+  "checks": [
+    {
+      "route": "/health",
+      "status": 200
+    },
+    {
+      "route": "/departments",
+      "status": 200
+    },
+    {
+      "route": "/settings/public",
+      "status": 200
+    },
+    {
+      "route": "/announcements/active",
+      "status": 200
+    },
+    {
+      "route": "/admin/users",
+      "status": 401
+    },
+    {
+      "route": "/lecturer/verifications",
+      "status": 405
+    },
+    {
+      "route": "/auth/me",
+      "status": 401
+    },
+    {
+      "route": "/leaderboard",
+      "status": 401
+    },
+    {
+      "route": "/modules?limit=1&limit=2",
+      "status": 422
+    },
+    {
+      "route": "/admin/settings (invalid origin)",
+      "status": 403
+    }
+  ]
+}

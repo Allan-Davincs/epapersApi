@@ -1,0 +1,336 @@
+{
+  "name": "EPapers local — fill values locally",
+  "values": [
+    {
+      "key": "accessToken",
+      "value": "",
+      "enabled": true,
+      "type": "secret"
+    },
+    {
+      "key": "actorUserId",
+      "value": "",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "adminAccessToken",
+      "value": "",
+      "enabled": true,
+      "type": "secret"
+    },
+    {
+      "key": "adminEmailOtp",
+      "value": "",
+      "enabled": true,
+      "type": "secret"
+    },
+    {
+      "key": "adminLoginChallengeToken",
+      "value": "",
+      "enabled": true,
+      "type": "secret"
+    },
+    {
+      "key": "adminPassword",
+      "value": "",
+      "enabled": true,
+      "type": "secret"
+    },
+    {
+      "key": "adminReauthChallengeToken",
+      "value": "",
+      "enabled": true,
+      "type": "secret"
+    },
+    {
+      "key": "adminUsername",
+      "value": "",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "allowDestructive",
+      "value": "false",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "allowExternalActions",
+      "value": "false",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "allowMutations",
+      "value": "false",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "announcementId",
+      "value": "",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "appOrigin",
+      "value": "https://app.example.com",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:3001/api/v1",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "contactId",
+      "value": "",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "createdDepartmentId",
+      "value": "",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "createdModuleId",
+      "value": "",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "createdProgramId",
+      "value": "",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "csvText",
+      "value": "",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "departmentId",
+      "value": "",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "downloadUrl",
+      "value": "",
+      "enabled": true,
+      "type": "secret"
+    },
+    {
+      "key": "email",
+      "value": "",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "emailOtp",
+      "value": "",
+      "enabled": true,
+      "type": "secret"
+    },
+    {
+      "key": "examUploadId",
+      "value": "",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "flagId",
+      "value": "",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "fullName",
+      "value": "Postman Test User",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "lecturerAccessToken",
+      "value": "",
+      "enabled": true,
+      "type": "secret"
+    },
+    {
+      "key": "lecturerPassword",
+      "value": "",
+      "enabled": true,
+      "type": "secret"
+    },
+    {
+      "key": "lecturerUsername",
+      "value": "",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "loggedUserRole",
+      "value": "",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "markingSchemeUploadId",
+      "value": "",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "maxResponseMs",
+      "value": "10000",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "moduleId",
+      "value": "",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "moduleRequestId",
+      "value": "",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "newPassword",
+      "value": "",
+      "enabled": true,
+      "type": "secret"
+    },
+    {
+      "key": "notificationId",
+      "value": "",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "paperId",
+      "value": "",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "password",
+      "value": "",
+      "enabled": true,
+      "type": "secret"
+    },
+    {
+      "key": "programCode",
+      "value": "",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "programId",
+      "value": "",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "reauthToken",
+      "value": "",
+      "enabled": true,
+      "type": "secret"
+    },
+    {
+      "key": "resetToken",
+      "value": "",
+      "enabled": true,
+      "type": "secret"
+    },
+    {
+      "key": "runNegativeTests",
+      "value": "true",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "sessionId",
+      "value": "",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "takedownId",
+      "value": "",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "targetId",
+      "value": "",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "targetUserId",
+      "value": "",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "uploadFilename",
+      "value": "paper.pdf",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "uploadId",
+      "value": "",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "uploadKind",
+      "value": "exam",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "uploadSizeBytes",
+      "value": "",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "uploadUrl",
+      "value": "",
+      "enabled": true,
+      "type": "secret"
+    },
+    {
+      "key": "username",
+      "value": "",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "verificationId",
+      "value": "",
+      "enabled": true,
+      "type": "default"
+    },
+    {
+      "key": "xpGrantRequestId",
+      "value": "",
+      "enabled": true,
+      "type": "default"
+    }
+  ],
+  "_postman_variable_scope": "environment"
+}

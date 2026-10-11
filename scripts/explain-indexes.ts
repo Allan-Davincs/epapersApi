@@ -1,0 +1,46 @@
+import { PrismaClient } from '@prisma/client';
+import { writeFileSync } from 'node:fs';
+const db = new PrismaClient();
+async function main() {
+    try {
+        if (!process.env.TEST_DATABASE_URL || !new URL(process.env.DATABASE_URL!).pathname.includes('test'))
+            throw new Error('Index verification requires an isolated test database');
+        const program = await db.program.findFirstOrThrow();
+        let owner = await db.user.findUnique({ where: { usernameNormalized: 'index_fixture' } });
+        if (!owner)
+            owner = await db.user.create({ data: { username: 'index_fixture', usernameNormalized: 'index_fixture', email: 'index_fixture@example.com', emailNormalized: 'index_fixture@example.com', fullName: 'Index Fixture', passwordHash: 'disabled-no-login' } });
+        await db.$executeRaw `INSERT INTO modules(id,program_id,code,code_normalized,name,name_normalized,semester,level_year,updated_at)
+ SELECT gen_random_uuid(),${program.id}::UUID,'PLAN'||n,'plan'||n,'Plan Module '||n,'plan module '||n,1+(n%2),1,now() FROM generate_series(1,200) AS g(n)
+ WHERE NOT EXISTS(SELECT 1 FROM modules WHERE code_normalized='plan'||n)`;
+        await db.$executeRaw `INSERT INTO stored_files(id,owner_user_id,bucket_name,object_key,original_filename,content_type,size_bytes,scan_status)
+ SELECT gen_random_uuid(),${owner.id}::UUID,'test-fixtures','plan/'||n,'fixture.pdf','application/pdf',1024,'CLEAN'
+ FROM generate_series(1,3000) AS g(n) WHERE NOT EXISTS(SELECT 1 FROM stored_files WHERE object_key='plan/'||n)`;
+        await db.$executeRaw `INSERT INTO papers(id,module_id,uploaded_by_user_id,title,category,academic_year_start,semester,exam_file_id,status,downloads_count,created_at,updated_at)
+ SELECT gen_random_uuid(),m.id,${owner.id}::UUID,'Index Fixture '||f.object_key,'UE',2024,m.semester,f.id,'APPROVED',abs(fnv32(f.object_key))%1000,now()-INTERVAL '1 second' * (abs(fnv32(f.object_key))%86400),now()
+ FROM stored_files f JOIN modules m ON m.code_normalized='plan'||(1+(abs(fnv32(f.object_key))%200))
+ WHERE f.object_key LIKE 'plan/%' AND NOT EXISTS(SELECT 1 FROM papers WHERE exam_file_id=f.id)`;
+        await db.$executeRaw `CREATE STATISTICS phase_modules_stats FROM modules AS OF SYSTEM TIME '-1ms'`;
+        await db.$executeRaw `CREATE STATISTICS phase_papers_stats FROM papers AS OF SYSTEM TIME '-1ms'`;
+        const fixture = { modules: await db.module.count({ where: { codeNormalized: { startsWith: 'plan' } } }), papers: await db.paper.count({ where: { uploadedByUserId: owner.id } }) };
+        if (fixture.modules !== 200 || fixture.papers !== 3000)
+            throw new Error('Unexpected fixture size');
+        const plans = {
+            runtimeSearch: await db.$queryRaw `EXPLAIN ANALYZE SELECT p.id FROM papers p JOIN modules m ON m.id=p.module_id JOIN programs g ON g.id=m.program_id JOIN departments d ON d.id=g.department_id WHERE p.status='APPROVED' AND p.deleted_at IS NULL AND m.is_active AND m.deleted_at IS NULL AND g.is_active AND g.deleted_at IS NULL AND d.is_active AND d.deleted_at IS NULL AND (p.title ILIKE '%Index Fixture%' OR m.code_normalized LIKE 'index fixture%' OR m.name_normalized LIKE 'index fixture%') ORDER BY p.created_at DESC,p.id DESC LIMIT 25`,
+            retention: await db.$queryRaw `EXPLAIN SELECT id FROM papers WHERE deleted_at < now()-INTERVAL '90 days' ORDER BY deleted_at ASC LIMIT 20`,
+
+            modulesRuntime: await db.$queryRaw `EXPLAIN ANALYZE SELECT id FROM modules WHERE program_id=(SELECT program_id FROM modules WHERE code_normalized='plan1' AND deleted_at IS NULL LIMIT 1) AND semester=1 AND is_active AND deleted_at IS NULL`,
+            modules: await db.$queryRaw `EXPLAIN SELECT id FROM modules WHERE program_id=${program.id}::UUID AND semester=1 AND is_active AND deleted_at IS NULL`,
+            recent: await db.$queryRaw `EXPLAIN ANALYZE SELECT id FROM papers WHERE status='APPROVED' AND deleted_at IS NULL ORDER BY created_at DESC LIMIT 25`,
+            popular: await db.$queryRaw `EXPLAIN ANALYZE SELECT id FROM papers WHERE status='APPROVED' AND deleted_at IS NULL ORDER BY downloads_count DESC LIMIT 25`,
+            search: await db.$queryRaw `EXPLAIN ANALYZE SELECT id FROM modules WHERE name_normalized >= 'plan module 199' AND name_normalized < 'plan module 199\uffff' AND deleted_at IS NULL`,
+            auth: await db.$queryRaw `EXPLAIN ANALYZE SELECT id FROM users WHERE email_normalized='index_fixture@example.com' AND deleted_at IS NULL`
+        };
+        for(const [query,index] of Object.entries({recent:'papers_public_recent_idx',popular:'papers_public_popular_idx',modules:'modules_program_semester_active_idx',search:'modules_name_normalized_idx',auth:'users_email_normalized_key',retention:'papers_retention_idx'})){if(!JSON.stringify(plans[query as keyof typeof plans]).includes(index))throw new Error('Expected query index absent');}
+        writeFileSync('docs/INDEXES.json', JSON.stringify({ fixture, plans }, null, 2) + '\n');
+        console.info('Index plans written to docs/INDEXES.json (200 modules, 3000 papers).');
+    }
+    finally {
+        await db.$disconnect();
+    }
+}
+main().catch(error => { console.error('Index verification failed:', error.code || error.name, error.meta?.code, error.meta?.message); process.exitCode = 1; });

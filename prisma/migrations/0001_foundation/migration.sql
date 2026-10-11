@@ -25,7 +25,7 @@ CREATE TABLE IF NOT EXISTS username_registry (
   retired_at TIMESTAMPTZ,
   CONSTRAINT username_registry_retirement_check CHECK
     ((is_current AND retired_at IS NULL) OR (NOT is_current AND retired_at IS NOT NULL))
-);
+) WITH (schema_locked = false);
 CREATE UNIQUE INDEX IF NOT EXISTS username_registry_one_current_per_user_idx
   ON username_registry (user_id) WHERE is_current;
 
@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS xp_ledger (
   event_type STRING NOT NULL,
   reason STRING NOT NULL DEFAULT '',
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
+) WITH (schema_locked = false);
 CREATE INDEX IF NOT EXISTS xp_ledger_user_created_idx ON xp_ledger (user_id, created_at DESC);
 
 CREATE TABLE IF NOT EXISTS paper_download_events (
@@ -44,7 +44,7 @@ CREATE TABLE IF NOT EXISTS paper_download_events (
   paper_id UUID NOT NULL REFERENCES papers(id) ON DELETE CASCADE,
   ip_hash STRING,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
+) WITH (schema_locked = false);
 CREATE INDEX IF NOT EXISTS paper_download_events_paper_time_idx
   ON paper_download_events (paper_id, created_at DESC);
 CREATE TABLE IF NOT EXISTS paper_view_events (
@@ -52,6 +52,6 @@ CREATE TABLE IF NOT EXISTS paper_view_events (
   paper_id UUID NOT NULL REFERENCES papers(id) ON DELETE CASCADE,
   ip_hash STRING,
   created_at TIMESTAMPTZ NOT NULL DEFAULT now()
-);
+) WITH (schema_locked = false);
 CREATE INDEX IF NOT EXISTS paper_view_events_paper_time_idx
   ON paper_view_events (paper_id, created_at DESC);

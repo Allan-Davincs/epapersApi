@@ -1,6 +1,2 @@
-export function levelTitleForXp(xp: number): string {
-  if (xp < 200) return 'Novice Archivist';
-  if (xp < 500) return 'Scholar';
-  if (xp < 1000) return 'Senior Curator';
-  return 'Master Archivist';
-}
+import 'server-only';
+export function levelTitleForXp(xp: number) { return xp < 200 ? 'Novice Archivist' : xp < 500 ? 'Scholar' : xp < 1000 ? 'Senior Curator' : 'Master Archivist'; }

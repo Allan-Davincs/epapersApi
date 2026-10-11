@@ -1,0 +1,897 @@
+{
+  "fixture": {
+    "modules": 200,
+    "papers": 3000
+  },
+  "plans": {
+    "runtimeSearch": [
+      {
+        "info": "planning time: 20ms"
+      },
+      {
+        "info": "execution time: 48ms"
+      },
+      {
+        "info": "distribution: local"
+      },
+      {
+        "info": "plan type: generic, re-optimized"
+      },
+      {
+        "info": "rows decoded from KV: 4,578 (402 KiB, 6,254 KVs, 8 gRPC calls)"
+      },
+      {
+        "info": "regions: gcp-europe-west3"
+      },
+      {
+        "info": ""
+      },
+      {
+        "info": "• top-k"
+      },
+      {
+        "info": "│ sql nodes: n1"
+      },
+      {
+        "info": "│ regions: gcp-europe-west3"
+      },
+      {
+        "info": "│ execution time: 99µs"
+      },
+      {
+        "info": "│ sql cpu time: 99µs"
+      },
+      {
+        "info": "│ actual row count: 25"
+      },
+      {
+        "info": "│ estimated row count: 25"
+      },
+      {
+        "info": "│ order: -created_at,-id"
+      },
+      {
+        "info": "│ k: 25"
+      },
+      {
+        "info": "│"
+      },
+      {
+        "info": "└── • lookup join (streamer)"
+      },
+      {
+        "info": "    │ sql nodes: n1"
+      },
+      {
+        "info": "    │ kv nodes: n52"
+      },
+      {
+        "info": "    │ regions: gcp-europe-west3"
+      },
+      {
+        "info": "    │ KV time: 997µs"
+      },
+      {
+        "info": "    │ KV rows decoded: 1"
+      },
+      {
+        "info": "    │ execution time: 1ms"
+      },
+      {
+        "info": "    │ sql cpu time: 265µs"
+      },
+      {
+        "info": "    │ actual row count: 31"
+      },
+      {
+        "info": "    │ estimated row count: 1,000"
+      },
+      {
+        "info": "    │ table: departments@departments_pkey"
+      },
+      {
+        "info": "    │ equality: (department_id) = (id)"
+      },
+      {
+        "info": "    │ equality cols are key"
+      },
+      {
+        "info": "    │ pred: is_active AND (deleted_at IS NULL)"
+      },
+      {
+        "info": "    │"
+      },
+      {
+        "info": "    └── • lookup join (streamer)"
+      },
+      {
+        "info": "        │ sql nodes: n1"
+      },
+      {
+        "info": "        │ kv nodes: n52"
+      },
+      {
+        "info": "        │ regions: gcp-europe-west3"
+      },
+      {
+        "info": "        │ KV time: 1ms"
+      },
+      {
+        "info": "        │ KV rows decoded: 1"
+      },
+      {
+        "info": "        │ execution time: 1ms"
+      },
+      {
+        "info": "        │ sql cpu time: 241µs"
+      },
+      {
+        "info": "        │ actual row count: 63"
+      },
+      {
+        "info": "        │ estimated row count: 1,000"
+      },
+      {
+        "info": "        │ table: programs@programs_pkey"
+      },
+      {
+        "info": "        │ equality: (program_id) = (id)"
+      },
+      {
+        "info": "        │ equality cols are key"
+      },
+      {
+        "info": "        │ pred: is_active AND (deleted_at IS NULL)"
+      },
+      {
+        "info": "        │"
+      },
+      {
+        "info": "        └── • lookup join (streamer)"
+      },
+      {
+        "info": "            │ sql nodes: n1"
+      },
+      {
+        "info": "            │ kv nodes: n52"
+      },
+      {
+        "info": "            │ regions: gcp-europe-west3"
+      },
+      {
+        "info": "            │ KV time: 5ms"
+      },
+      {
+        "info": "            │ KV rows decoded: 252"
+      },
+      {
+        "info": "            │ execution time: 6ms"
+      },
+      {
+        "info": "            │ sql cpu time: 1ms"
+      },
+      {
+        "info": "            │ actual row count: 127"
+      },
+      {
+        "info": "            │ estimated row count: 1,000"
+      },
+      {
+        "info": "            │ table: modules@modules_pkey"
+      },
+      {
+        "info": "            │ equality: (module_id) = (id)"
+      },
+      {
+        "info": "            │ equality cols are key"
+      },
+      {
+        "info": "            │ pred: ((((title ILIKE '%Index Fixture%') OR (code_normalized LIKE 'index fixture%')) OR (name_normalized LIKE 'index fixture%')) AND is_active) AND (deleted_at IS NULL)"
+      },
+      {
+        "info": "            │"
+      },
+      {
+        "info": "            └── • index join (streamer)"
+      },
+      {
+        "info": "                │ sql nodes: n1"
+      },
+      {
+        "info": "                │ kv nodes: n52"
+      },
+      {
+        "info": "                │ regions: gcp-europe-west3"
+      },
+      {
+        "info": "                │ KV time: 34ms"
+      },
+      {
+        "info": "                │ KV rows decoded: 1,324"
+      },
+      {
+        "info": "                │ sql cpu time: 1ms"
+      },
+      {
+        "info": "                │ actual row count: 1,324"
+      },
+      {
+        "info": "                │ estimated row count: 3,000"
+      },
+      {
+        "info": "                │ table: papers@papers_pkey"
+      },
+      {
+        "info": "                │"
+      },
+      {
+        "info": "                └── • scan"
+      },
+      {
+        "info": "                      sql nodes: n1"
+      },
+      {
+        "info": "                      kv nodes: n52"
+      },
+      {
+        "info": "                      regions: gcp-europe-west3"
+      },
+      {
+        "info": "                      KV time: 5ms"
+      },
+      {
+        "info": "                      KV rows decoded: 3,000"
+      },
+      {
+        "info": "                      sql cpu time: 641µs"
+      },
+      {
+        "info": "                      actual row count: 3,000"
+      },
+      {
+        "info": "                      estimated row count: 300 - 3,000 (100% of the table; stats collected 3 minutes ago; using stats forecast for 4 minutes in the future)"
+      },
+      {
+        "info": "                      table: papers@papers_public_recent_idx (partial index)"
+      },
+      {
+        "info": "                      spans: FULL SCAN (SOFT LIMIT)"
+      }
+    ],
+    "retention": [
+      {
+        "info": "distribution: local"
+      },
+      {
+        "info": ""
+      },
+      {
+        "info": "• scan"
+      },
+      {
+        "info": "  estimated row count: 1 (0.03% of the table; stats collected 3 minutes ago; using stats forecast for 4 minutes in the future)"
+      },
+      {
+        "info": "  table: papers@papers_retention_idx (partial index)"
+      },
+      {
+        "info": "  spans: (/NULL - /'2026-07-12 15:45:07.484337+00']"
+      },
+      {
+        "info": "  limit: 20"
+      }
+    ],
+    "modulesRuntime": [
+      {
+        "info": "planning time: 2ms"
+      },
+      {
+        "info": "execution time: 4ms"
+      },
+      {
+        "info": "distribution: local"
+      },
+      {
+        "info": "plan type: generic, re-optimized"
+      },
+      {
+        "info": "rows decoded from KV: 202 (14 KiB, 3 gRPC calls)"
+      },
+      {
+        "info": "regions: gcp-europe-west3"
+      },
+      {
+        "info": ""
+      },
+      {
+        "info": "• merge join"
+      },
+      {
+        "info": "│ sql nodes: n1"
+      },
+      {
+        "info": "│ regions: gcp-europe-west3"
+      },
+      {
+        "info": "│ execution time: 116µs"
+      },
+      {
+        "info": "│ sql cpu time: 116µs"
+      },
+      {
+        "info": "│ actual row count: 100"
+      },
+      {
+        "info": "│ estimated row count: 51"
+      },
+      {
+        "info": "│ equality: (program_id) = (program_id)"
+      },
+      {
+        "info": "│ right cols are key"
+      },
+      {
+        "info": "│"
+      },
+      {
+        "info": "├── • filter"
+      },
+      {
+        "info": "│   │ sql nodes: n1"
+      },
+      {
+        "info": "│   │ regions: gcp-europe-west3"
+      },
+      {
+        "info": "│   │ execution time: 3µs"
+      },
+      {
+        "info": "│   │ sql cpu time: 3µs"
+      },
+      {
+        "info": "│   │ actual row count: 100"
+      },
+      {
+        "info": "│   │ estimated row count: 101"
+      },
+      {
+        "info": "│   │ filter: semester = 1"
+      },
+      {
+        "info": "│   │"
+      },
+      {
+        "info": "│   └── • render"
+      },
+      {
+        "info": "│       │ execution time: 26µs"
+      },
+      {
+        "info": "│       │ sql cpu time: 26µs"
+      },
+      {
+        "info": "│       │ actual row count: 200"
+      },
+      {
+        "info": "│       │"
+      },
+      {
+        "info": "│       └── • scan"
+      },
+      {
+        "info": "│             sql nodes: n1"
+      },
+      {
+        "info": "│             kv nodes: n52"
+      },
+      {
+        "info": "│             regions: gcp-europe-west3"
+      },
+      {
+        "info": "│             KV time: 1ms"
+      },
+      {
+        "info": "│             KV rows decoded: 200"
+      },
+      {
+        "info": "│             sql cpu time: 64µs"
+      },
+      {
+        "info": "│             actual row count: 200"
+      },
+      {
+        "info": "│             estimated row count: 201 (100% of the table; stats collected 3 minutes ago)"
+      },
+      {
+        "info": "│             table: modules@modules_program_semester_active_idx (partial index)"
+      },
+      {
+        "info": "│             spans: FULL SCAN"
+      },
+      {
+        "info": "│"
+      },
+      {
+        "info": "└── • limit"
+      },
+      {
+        "info": "    │ count: 1"
+      },
+      {
+        "info": "    │"
+      },
+      {
+        "info": "    └── • index join (streamer)"
+      },
+      {
+        "info": "        │ sql nodes: n1"
+      },
+      {
+        "info": "        │ kv nodes: n52"
+      },
+      {
+        "info": "        │ regions: gcp-europe-west3"
+      },
+      {
+        "info": "        │ KV time: 1ms"
+      },
+      {
+        "info": "        │ KV rows decoded: 1"
+      },
+      {
+        "info": "        │ sql cpu time: 40µs"
+      },
+      {
+        "info": "        │ actual row count: 1"
+      },
+      {
+        "info": "        │ estimated row count: 1"
+      },
+      {
+        "info": "        │ table: modules@modules_pkey"
+      },
+      {
+        "info": "        │"
+      },
+      {
+        "info": "        └── • scan"
+      },
+      {
+        "info": "              sql nodes: n1"
+      },
+      {
+        "info": "              kv nodes: n52"
+      },
+      {
+        "info": "              regions: gcp-europe-west3"
+      },
+      {
+        "info": "              KV time: 995µs"
+      },
+      {
+        "info": "              KV rows decoded: 1"
+      },
+      {
+        "info": "              sql cpu time: 12µs"
+      },
+      {
+        "info": "              actual row count: 1"
+      },
+      {
+        "info": "              estimated row count: 1 (0.50% of the table; stats collected 3 minutes ago)"
+      },
+      {
+        "info": "              table: modules@modules_code_live_key (partial index)"
+      },
+      {
+        "info": "              spans: [/'plan1' - /'plan1']"
+      }
+    ],
+    "modules": [
+      {
+        "info": "distribution: local"
+      },
+      {
+        "info": ""
+      },
+      {
+        "info": "• render"
+      },
+      {
+        "info": "│"
+      },
+      {
+        "info": "└── • scan"
+      },
+      {
+        "info": "      estimated row count: 100 (50% of the table; stats collected 3 minutes ago)"
+      },
+      {
+        "info": "      table: modules@modules_program_semester_active_idx (partial index)"
+      },
+      {
+        "info": "      spans: [/'00d109ee-52d4-4f6d-8e26-0a1e1c2f7a66'/1 - /'00d109ee-52d4-4f6d-8e26-0a1e1c2f7a66'/1]"
+      }
+    ],
+    "recent": [
+      {
+        "info": "planning time: 2ms"
+      },
+      {
+        "info": "execution time: 1ms"
+      },
+      {
+        "info": "distribution: local"
+      },
+      {
+        "info": "plan type: generic, re-optimized"
+      },
+      {
+        "info": "rows decoded from KV: 25 (1.5 KiB, 1 gRPC calls)"
+      },
+      {
+        "info": "regions: gcp-europe-west3"
+      },
+      {
+        "info": ""
+      },
+      {
+        "info": "• render"
+      },
+      {
+        "info": "│ execution time: 16µs"
+      },
+      {
+        "info": "│ sql cpu time: 16µs"
+      },
+      {
+        "info": "│ actual row count: 25"
+      },
+      {
+        "info": "│"
+      },
+      {
+        "info": "└── • scan"
+      },
+      {
+        "info": "      sql nodes: n1"
+      },
+      {
+        "info": "      kv nodes: n52"
+      },
+      {
+        "info": "      regions: gcp-europe-west3"
+      },
+      {
+        "info": "      KV time: 1ms"
+      },
+      {
+        "info": "      KV rows decoded: 25"
+      },
+      {
+        "info": "      sql cpu time: 29µs"
+      },
+      {
+        "info": "      actual row count: 25"
+      },
+      {
+        "info": "      estimated row count: 25 (0.83% of the table; stats collected 3 minutes ago; using stats forecast for 3 minutes in the future)"
+      },
+      {
+        "info": "      table: papers@papers_public_recent_idx (partial index)"
+      },
+      {
+        "info": "      spans: LIMITED SCAN"
+      },
+      {
+        "info": "      limit: 25"
+      }
+    ],
+    "popular": [
+      {
+        "info": "planning time: 2ms"
+      },
+      {
+        "info": "execution time: 2ms"
+      },
+      {
+        "info": "distribution: local"
+      },
+      {
+        "info": "plan type: generic, re-optimized"
+      },
+      {
+        "info": "rows decoded from KV: 25 (1.3 KiB, 1 gRPC calls)"
+      },
+      {
+        "info": "regions: gcp-europe-west3"
+      },
+      {
+        "info": ""
+      },
+      {
+        "info": "• render"
+      },
+      {
+        "info": "│ execution time: 22µs"
+      },
+      {
+        "info": "│ sql cpu time: 22µs"
+      },
+      {
+        "info": "│ actual row count: 25"
+      },
+      {
+        "info": "│"
+      },
+      {
+        "info": "└── • scan"
+      },
+      {
+        "info": "      sql nodes: n1"
+      },
+      {
+        "info": "      kv nodes: n52"
+      },
+      {
+        "info": "      regions: gcp-europe-west3"
+      },
+      {
+        "info": "      KV time: 1ms"
+      },
+      {
+        "info": "      KV rows decoded: 25"
+      },
+      {
+        "info": "      sql cpu time: 52µs"
+      },
+      {
+        "info": "      actual row count: 25"
+      },
+      {
+        "info": "      estimated row count: 25 (0.83% of the table; stats collected 3 minutes ago; using stats forecast for 3 minutes in the future)"
+      },
+      {
+        "info": "      table: papers@papers_public_popular_idx (partial index)"
+      },
+      {
+        "info": "      spans: LIMITED SCAN"
+      },
+      {
+        "info": "      limit: 25"
+      }
+    ],
+    "search": [
+      {
+        "info": "planning time: 1ms"
+      },
+      {
+        "info": "execution time: 2ms"
+      },
+      {
+        "info": "distribution: local"
+      },
+      {
+        "info": "plan type: generic, re-optimized"
+      },
+      {
+        "info": "rows decoded from KV: 2 (196 B, 2 gRPC calls)"
+      },
+      {
+        "info": "regions: gcp-europe-west3"
+      },
+      {
+        "info": ""
+      },
+      {
+        "info": "• filter"
+      },
+      {
+        "info": "│ sql nodes: n1"
+      },
+      {
+        "info": "│ regions: gcp-europe-west3"
+      },
+      {
+        "info": "│ execution time: 4µs"
+      },
+      {
+        "info": "│ sql cpu time: 4µs"
+      },
+      {
+        "info": "│ actual row count: 1"
+      },
+      {
+        "info": "│ estimated row count: 1"
+      },
+      {
+        "info": "│ filter: deleted_at IS NULL"
+      },
+      {
+        "info": "│"
+      },
+      {
+        "info": "└── • index join (streamer)"
+      },
+      {
+        "info": "    │ sql nodes: n1"
+      },
+      {
+        "info": "    │ kv nodes: n52"
+      },
+      {
+        "info": "    │ regions: gcp-europe-west3"
+      },
+      {
+        "info": "    │ KV time: 1ms"
+      },
+      {
+        "info": "    │ KV rows decoded: 1"
+      },
+      {
+        "info": "    │ sql cpu time: 66µs"
+      },
+      {
+        "info": "    │ actual row count: 1"
+      },
+      {
+        "info": "    │ estimated row count: 1"
+      },
+      {
+        "info": "    │ table: modules@modules_pkey"
+      },
+      {
+        "info": "    │"
+      },
+      {
+        "info": "    └── • scan"
+      },
+      {
+        "info": "          sql nodes: n1"
+      },
+      {
+        "info": "          kv nodes: n52"
+      },
+      {
+        "info": "          regions: gcp-europe-west3"
+      },
+      {
+        "info": "          KV time: 1ms"
+      },
+      {
+        "info": "          KV rows decoded: 1"
+      },
+      {
+        "info": "          sql cpu time: 44µs"
+      },
+      {
+        "info": "          actual row count: 1"
+      },
+      {
+        "info": "          estimated row count: 1 (0.50% of the table; stats collected 3 minutes ago)"
+      },
+      {
+        "info": "          table: modules@modules_name_normalized_idx"
+      },
+      {
+        "info": "          spans: [/'plan module 199' - /e'plan module 199\\U0000FFFF')"
+      }
+    ],
+    "auth": [
+      {
+        "info": "planning time: 1ms"
+      },
+      {
+        "info": "execution time: 3ms"
+      },
+      {
+        "info": "distribution: local"
+      },
+      {
+        "info": "plan type: generic, re-optimized"
+      },
+      {
+        "info": "rows decoded from KV: 2 (244 B, 2 gRPC calls)"
+      },
+      {
+        "info": "regions: gcp-europe-west3"
+      },
+      {
+        "info": ""
+      },
+      {
+        "info": "• filter"
+      },
+      {
+        "info": "│ sql nodes: n1"
+      },
+      {
+        "info": "│ regions: gcp-europe-west3"
+      },
+      {
+        "info": "│ execution time: 4µs"
+      },
+      {
+        "info": "│ sql cpu time: 4µs"
+      },
+      {
+        "info": "│ actual row count: 1"
+      },
+      {
+        "info": "│ estimated row count: 1"
+      },
+      {
+        "info": "│ filter: deleted_at IS NULL"
+      },
+      {
+        "info": "│"
+      },
+      {
+        "info": "└── • index join (streamer)"
+      },
+      {
+        "info": "    │ sql nodes: n1"
+      },
+      {
+        "info": "    │ kv nodes: n52"
+      },
+      {
+        "info": "    │ regions: gcp-europe-west3"
+      },
+      {
+        "info": "    │ KV time: 1ms"
+      },
+      {
+        "info": "    │ KV rows decoded: 1"
+      },
+      {
+        "info": "    │ sql cpu time: 81µs"
+      },
+      {
+        "info": "    │ actual row count: 1"
+      },
+      {
+        "info": "    │ estimated row count: 1"
+      },
+      {
+        "info": "    │ table: users@users_pkey"
+      },
+      {
+        "info": "    │"
+      },
+      {
+        "info": "    └── • scan"
+      },
+      {
+        "info": "          sql nodes: n1"
+      },
+      {
+        "info": "          kv nodes: n52"
+      },
+      {
+        "info": "          regions: gcp-europe-west3"
+      },
+      {
+        "info": "          KV time: 1ms"
+      },
+      {
+        "info": "          KV rows decoded: 1"
+      },
+      {
+        "info": "          sql cpu time: 23µs"
+      },
+      {
+        "info": "          actual row count: 1"
+      },
+      {
+        "info": "          estimated row count: 1 (25% of the table; stats collected 7 minutes ago)"
+      },
+      {
+        "info": "          table: users@users_email_normalized_key"
+      },
+      {
+        "info": "          spans: [/'index_fixture@example.com' - /'index_fixture@example.com']"
+      }
+    ]
+  }
+}

@@ -1,0 +1,24 @@
+[Unit]
+Description=EPapers maintenance worker
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=simple
+User=epapers
+Group=epapers
+WorkingDirectory=/srv/epapers/current
+EnvironmentFile=/etc/epapers/api.env
+Environment=NODE_ENV=production
+ExecStart=/usr/bin/node --conditions=react-server --import tsx worker/index.ts
+Restart=on-failure
+RestartSec=5
+TimeoutStopSec=60
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+UMask=0077
+
+[Install]
+WantedBy=multi-user.target
