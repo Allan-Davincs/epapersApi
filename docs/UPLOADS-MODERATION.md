@@ -1,5 +1,7 @@
 # Phases 3–5 API usage
 
+For direct browser upload failures after a successful presign, see [R2 upload CORS setup and verification](R2-UPLOAD-CORS.md).
+
 All paths below are under `/api/v1`. Lists return `{ data: { items, nextCursor } }`; pass the opaque cursor back with the same filters and sort. The default limit is 25 and maximum is 100. Unknown body/query fields are rejected. All mutations require `Origin` equal to `APP_ORIGIN` and `X-EPapers-Client: web`, including public view/download/report requests. Bearer credentials remain required for private endpoints.
 
 ## Curriculum and search

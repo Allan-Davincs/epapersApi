@@ -1,6 +1,6 @@
 [
   {
-    "AllowedOrigins": ["https://app.example.com"],
+    "AllowedOrigins": ["https://epapers.15botyear.workers.dev"],
     "AllowedMethods": ["PUT"],
     "AllowedHeaders": ["Content-Type", "Content-Length", "If-None-Match"],
     "ExposeHeaders": ["ETag"],

@@ -12,6 +12,8 @@
     "start:heroku": "node scripts/start-heroku.mjs",
     "worker:heroku": "node --use-system-ca --conditions=react-server --import tsx worker/index.ts",
     "heroku:config": "node scripts/heroku-config.mjs",
+    "r2:cors:check": "node --use-system-ca --env-file=.env scripts/r2-upload-cors.mjs",
+    "r2:cors:apply": "node --use-system-ca --env-file=.env scripts/r2-upload-cors.mjs --apply",
     "lint": "eslint .",
     "typecheck": "tsc --noEmit",
     "db:generate": "prisma generate",
