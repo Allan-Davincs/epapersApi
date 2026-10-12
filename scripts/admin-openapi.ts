@@ -1,3 +1,4 @@
+import { systemHealthSchema } from '../src/modules/admin/health-schema';
 import { z } from 'zod';
 import { adminSchemas } from '../src/modules/admin/schemas';
 import { exportSchema,deleteAccountSchema } from '../src/modules/accounts/service';
@@ -10,7 +11,7 @@ const settings=z.strictObject({usernameCooldownDays:z.number().int().optional(),
 const verification=z.strictObject({id:uuid,userId:uuid,departmentId:uuid,evidence:z.string(),status:z.enum(['pending','approved','rejected']),reviewNote:z.string().nullable(),createdAt:time,reviewedAt:nullableTime});
 const announcement=z.strictObject({id:uuid,title:z.string(),content:z.string(),type:z.enum(['info','warning','alert','success']),isActive:z.boolean(),startsAt:time,endsAt:nullableTime});
 const outputs={
- adminUser:user,adminUsers:page(user),adminSettings:settings,
+ systemHealth:systemHealthSchema, adminUser:user,adminUsers:page(user),adminSettings:settings,
  publicSettings:z.strictObject({lockdown:z.boolean(),readOnly:z.boolean(),bannerMessage:z.string()}),
  securityPolicy:z.strictObject({settings,policy:z.strictObject({adminTotpRequired:z.boolean(),reauthSeconds:z.number(),accessSeconds:z.number(),adminAccessSeconds:z.number(),refreshRotation:z.boolean(),maxUploadBytes:z.number(),dailyUploadQuota:z.number(),publicSignedUrlSeconds:z.number()}),recentEvents:z.array(z.strictObject({id:uuid,action:z.string(),targetId:uuid.nullable(),createdAt:time}))}),
  verification,verificationPage:page(verification),announcement,announcementPage:page(announcement),
@@ -43,6 +44,7 @@ export function addAdminPaths(paths:Record<string,unknown>,definitions:Record<st
  add('/admin/papers/{id}','delete','admin_reason','message','admin',true);add('/admin/papers/{id}/restore','post','admin_reason','message','admin',true);
  for(const [plural,singular,list,detail] of [['departments','department','adminDepartments','adminDepartment'],['programs','program','adminPrograms','adminProgram'],['modules','module','adminModules','adminModule']]){const path='/admin/'+plural;add(path,'get','adminPagination',list);add(path,'post','admin_'+singular,detail);add(path+'/{id}','patch','admin_'+singular+'Patch',detail);add(path+'/{id}','delete','admin_reason','message','admin',true);}
  add('/admin/modules/import','post','admin_csv','importResult');
+ add('/admin/health','get','empty','systemHealth');
  add('/admin/announcements','get','adminPagination','announcementPage');add('/admin/announcements','post','admin_announcement','announcement');add('/admin/announcements/{id}','patch','admin_announcementPatch','announcement');add('/admin/announcements/{id}','delete','admin_reason','message','admin',true);add('/announcements/active','get','adminPagination','announcementPage','public',false,true);
  add('/contact-messages','post','admin_contact','receipt','authenticated');add('/admin/contact-messages','get','adminPagination','contactsPage');add('/admin/contact-messages/{id}','patch','admin_contactReview','receipt');
  add('/users/me/export','get','accountExportQuery','accountExport','authenticated');add('/users/me/account','delete','deleteAccount','message','authenticated');

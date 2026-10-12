@@ -97,6 +97,7 @@ async function run() {
     while (!stopping) {
         if (Date.now() - lastMaintenance > 60000) {
             await withTransactionRetry(async (tx) => { await tx.job.updateMany({ where: { status: 'running', type: { in: types }, runAt: { lt: new Date() } }, data: { status: 'pending', leaseToken: null } }); await tx.$executeRaw `DELETE FROM rate_limit_counters WHERE expires_at < now()`; });
+            await db.appSetting.upsert({ where: { key: 'workerHeartbeat' }, create: { key: 'workerHeartbeat', value: { timestamp: new Date().toISOString() } }, update: { value: { timestamp: new Date().toISOString() }, updatedAt: new Date() } });
             await rollupEvents();
             lastMaintenance = Date.now();
         }

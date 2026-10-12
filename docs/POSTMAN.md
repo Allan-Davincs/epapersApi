@@ -198,6 +198,7 @@ All success requests expect HTTP 200. The collection includes strict request exa
 | PATCH | /admin/modules/{id} | Admin bearer | ? | reason |
 | DELETE | /admin/modules/{id} | Admin bearer | Yes | reason |
 | POST | /admin/modules/import | Admin bearer | ? | csv, reason |
+| GET | /admin/health | Admin bearer | ? | {} / query only |
 | GET | /admin/announcements | Admin bearer | ? | {} / query only |
 | POST | /admin/announcements | Admin bearer | ? | title, content, startsAt, reason |
 | PATCH | /admin/announcements/{id} | Admin bearer | ? | reason |

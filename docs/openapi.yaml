@@ -10938,6 +10938,119 @@
         }
       }
     },
+    "/admin/health": {
+      "get": {
+        "summary": "/admin/health",
+        "description": "Current admin role required. Cache-Control: no-store. ",
+        "security": [
+          {
+            "bearerAuth": []
+          }
+        ],
+        "parameters": [],
+        "responses": {
+          "200": {
+            "description": "Success",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "object",
+                  "required": [
+                    "data"
+                  ],
+                  "additionalProperties": false,
+                  "properties": {
+                    "data": {
+                      "$ref": "#/components/schemas/systemHealth"
+                    }
+                  }
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "Request rejected or service unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "Request rejected or service unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Request rejected or service unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Request rejected or service unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "Request rejected or service unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Request rejected or service unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Request rejected or service unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Request rejected or service unavailable",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/error"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/admin/announcements": {
       "get": {
         "summary": "/admin/announcements",
@@ -16612,6 +16725,477 @@
         "$schema": "https://json-schema.org/draft/2020-12/schema",
         "type": "object",
         "properties": {},
+        "additionalProperties": false
+      },
+      "systemHealth": {
+        "$schema": "https://json-schema.org/draft/2020-12/schema",
+        "type": "object",
+        "properties": {
+          "checkedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "healthy",
+              "warning",
+              "unhealthy",
+              "unknown"
+            ]
+          },
+          "refreshSeconds": {
+            "type": "number",
+            "minimum": 0
+          },
+          "server": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "healthy",
+                  "warning",
+                  "unhealthy",
+                  "unknown"
+                ]
+              },
+              "nodeVersion": {
+                "type": "string"
+              },
+              "environment": {
+                "type": "string"
+              },
+              "platform": {
+                "type": "string"
+              },
+              "processUptimeSeconds": {
+                "type": "number",
+                "minimum": 0
+              },
+              "hostUptimeSeconds": {
+                "type": "number",
+                "minimum": 0
+              },
+              "cpuCores": {
+                "type": "number",
+                "minimum": 0
+              },
+              "cpuPercent": {
+                "type": "number",
+                "minimum": 0
+              },
+              "processMemoryBytes": {
+                "type": "number",
+                "minimum": 0
+              },
+              "heapUsedBytes": {
+                "type": "number",
+                "minimum": 0
+              },
+              "heapTotalBytes": {
+                "type": "number",
+                "minimum": 0
+              },
+              "hostMemoryTotalBytes": {
+                "type": "number",
+                "minimum": 0
+              },
+              "hostMemoryUsedBytes": {
+                "type": "number",
+                "minimum": 0
+              },
+              "containerMemoryLimitBytes": {
+                "anyOf": [
+                  {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "loadAverage": {
+                "anyOf": [
+                  {
+                    "type": "array",
+                    "items": {
+                      "type": "number",
+                      "minimum": 0
+                    }
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "disk": {
+                "anyOf": [
+                  {
+                    "type": "object",
+                    "properties": {
+                      "totalBytes": {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      "usedBytes": {
+                        "type": "number",
+                        "minimum": 0
+                      },
+                      "availableBytes": {
+                        "type": "number",
+                        "minimum": 0
+                      }
+                    },
+                    "required": [
+                      "totalBytes",
+                      "usedBytes",
+                      "availableBytes"
+                    ],
+                    "additionalProperties": false
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              }
+            },
+            "required": [
+              "status",
+              "nodeVersion",
+              "environment",
+              "platform",
+              "processUptimeSeconds",
+              "hostUptimeSeconds",
+              "cpuCores",
+              "cpuPercent",
+              "processMemoryBytes",
+              "heapUsedBytes",
+              "heapTotalBytes",
+              "hostMemoryTotalBytes",
+              "hostMemoryUsedBytes",
+              "containerMemoryLimitBytes",
+              "loadAverage",
+              "disk"
+            ],
+            "additionalProperties": false
+          },
+          "database": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "healthy",
+                  "warning",
+                  "unhealthy",
+                  "unknown"
+                ]
+              },
+              "latencyMs": {
+                "anyOf": [
+                  {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "message": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "status",
+              "latencyMs",
+              "message"
+            ],
+            "additionalProperties": false
+          },
+          "storage": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "role": {
+                  "type": "string",
+                  "enum": [
+                    "incoming",
+                    "published"
+                  ]
+                },
+                "bucket": {
+                  "type": "string"
+                },
+                "status": {
+                  "type": "string",
+                  "enum": [
+                    "healthy",
+                    "warning",
+                    "unhealthy",
+                    "unknown"
+                  ]
+                },
+                "latencyMs": {
+                  "type": "number",
+                  "minimum": 0
+                },
+                "objectCount": {
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "usedBytes": {
+                  "anyOf": [
+                    {
+                      "type": "number",
+                      "minimum": 0
+                    },
+                    {
+                      "type": "null"
+                    }
+                  ]
+                },
+                "complete": {
+                  "type": "boolean"
+                },
+                "capacityBytes": {
+                  "type": "null"
+                },
+                "message": {
+                  "type": "string"
+                }
+              },
+              "required": [
+                "role",
+                "bucket",
+                "status",
+                "latencyMs",
+                "objectCount",
+                "usedBytes",
+                "complete",
+                "capacityBytes",
+                "message"
+              ],
+              "additionalProperties": false
+            }
+          },
+          "queue": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "healthy",
+                      "warning",
+                      "unhealthy",
+                      "unknown"
+                    ]
+                  },
+                  "pending": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "running": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "failed": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "expired": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "overdueLeases": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "oldestDueAt": {
+                    "anyOf": [
+                      {
+                        "type": "string",
+                        "format": "date-time",
+                        "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                      },
+                      {
+                        "type": "null"
+                      }
+                    ]
+                  },
+                  "emailPending": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "emailFailed": {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  "worker": {
+                    "type": "object",
+                    "properties": {
+                      "status": {
+                        "type": "string",
+                        "enum": [
+                          "healthy",
+                          "warning",
+                          "unhealthy",
+                          "unknown"
+                        ]
+                      },
+                      "lastHeartbeatAt": {
+                        "anyOf": [
+                          {
+                            "type": "string",
+                            "format": "date-time",
+                            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$"
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      },
+                      "ageSeconds": {
+                        "anyOf": [
+                          {
+                            "type": "number",
+                            "minimum": 0
+                          },
+                          {
+                            "type": "null"
+                          }
+                        ]
+                      }
+                    },
+                    "required": [
+                      "status",
+                      "lastHeartbeatAt",
+                      "ageSeconds"
+                    ],
+                    "additionalProperties": false
+                  },
+                  "message": {
+                    "type": "string"
+                  }
+                },
+                "required": [
+                  "status",
+                  "pending",
+                  "running",
+                  "failed",
+                  "expired",
+                  "overdueLeases",
+                  "oldestDueAt",
+                  "emailPending",
+                  "emailFailed",
+                  "worker",
+                  "message"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "email": {
+            "type": "object",
+            "properties": {
+              "status": {
+                "type": "string",
+                "enum": [
+                  "healthy",
+                  "warning",
+                  "unhealthy",
+                  "unknown"
+                ]
+              },
+              "provider": {
+                "type": "string"
+              },
+              "smtpSentToday": {
+                "anyOf": [
+                  {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "smtpDailyLimit": {
+                "anyOf": [
+                  {
+                    "type": "number",
+                    "minimum": 0
+                  },
+                  {
+                    "type": "null"
+                  }
+                ]
+              },
+              "message": {
+                "type": "string"
+              }
+            },
+            "required": [
+              "status",
+              "provider",
+              "smtpSentToday",
+              "smtpDailyLimit",
+              "message"
+            ],
+            "additionalProperties": false
+          },
+          "controls": {
+            "anyOf": [
+              {
+                "type": "object",
+                "properties": {
+                  "readOnly": {
+                    "type": "boolean"
+                  },
+                  "lockdown": {
+                    "type": "boolean"
+                  }
+                },
+                "required": [
+                  "readOnly",
+                  "lockdown"
+                ],
+                "additionalProperties": false
+              },
+              {
+                "type": "null"
+              }
+            ]
+          }
+        },
+        "required": [
+          "checkedAt",
+          "status",
+          "refreshSeconds",
+          "server",
+          "database",
+          "storage",
+          "queue",
+          "email",
+          "controls"
+        ],
         "additionalProperties": false
       },
       "adminUser": {
